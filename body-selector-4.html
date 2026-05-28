@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<htmfl lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -174,7 +174,7 @@ const STRETCH_OK=new Set(['首','肩','背中','肩甲骨','腕','腰','股関�
 const ALWAYS_NG=new Set(['胸','お腹','股間','肛門','膝']);
 let mode='momi';
 let sel={momi:new Set(),stretch:new Set()};
-
+let zoneMode={};
 function partName(id){
   return id.replace(/^[zl]-/,'').replace(/-[FfBb][LRlr12]?$/,'').replace(/-[FfBb]$/,'');
 }
