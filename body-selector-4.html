@@ -47,39 +47,13 @@ header p{font-size:11px;opacity:0.6;margin-top:2px;}
 .done-screen h2{font-size:22px;font-weight:700;margin-bottom:10px;}
 .done-screen p{font-size:14px;opacity:0.8;line-height:1.7;}
 .done-screen .back-btn{margin-top:30px;padding:14px 32px;background:white;color:var(--primary);border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;}
-/* 確認モーダル */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:150;align-items:center;justify-content:center;}
-.modal-overlay.show{display:flex;}
-.modal-box{background:white;border-radius:14px;padding:24px 20px;margin:20px;width:100%;max-width:400px;}
-.modal-box h3{font-size:16px;font-weight:700;color:var(--primary);margin-bottom:16px;text-align:center;}
-.modal-section{margin-bottom:12px;}
-.modal-section h4{font-size:12px;color:var(--light);margin-bottom:6px;}
-.modal-tags{display:flex;flex-wrap:wrap;gap:5px;}
-.modal-buttons{display:flex;gap:10px;margin-top:20px;}
-.modal-btn-back{flex:1;padding:13px;background:#eee;color:#333;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;}
-.modal-btn-ok{flex:2;padding:13px;background:var(--primary);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;}</style>
-</head>
+
+
 <body>
 
 <!-- 送信完了画面 -->
-<!-- 確認モーダル -->
-<div class="modal-overlay" id="confirmModal">
-  <div class="modal-box">
-    <h3>選択した箇所はこちらでお間違いないですか？</h3>
-    <div class="modal-section" id="modalMomi" style="display:none">
-      <h4>🤲 揉みほぐし</h4>
-      <div class="modal-tags" id="modalMomiTags"></div>
-    </div>
-    <div class="modal-section" id="modalStretch" style="display:none">
-      <h4>🧘 ストレッチ</h4>
-      <div class="modal-tags" id="modalStretchTags"></div>
-    </div>
-    <div class="modal-buttons">
-      <button class="modal-btn-back" onclick="closeConfirm()">戻る</button>
-      <button class="modal-btn-ok" onclick="submitForm()">決定</button>
-    </div>
-  </div>
-</div><div class="done-screen" id="doneScreen">
+
+<div class="done-screen" id="doneScreen">
   <div class="check">✅</div>
   <h2>送信完了！</h2>
   <p id="doneMsg"></p>
@@ -189,7 +163,7 @@ header p{font-size:11px;opacity:0.6;margin-top:2px;}
   <div class="tags" id="tags"><span class="hint">部位を選んでください</span></div>
 </div>
 <div class="submit-bar">
-  <button class="submit-btn" id="submitBtn" disabled onclick="showConfirm()">次へ進む →</button>
+  <button class="submit-btn" id="submitBtn" disabled onclick="submitFormF()">次へ進む →</button>
   <p class="note">揉みほぐし・ストレッチ切り替えて両方選べます</p>
 </div>
 
@@ -246,48 +220,8 @@ function updateTags(){
   c.innerHTML=all.length?all.map(({p,t})=>`<span class="tag ${t}">${p}</span>`).join(''):'<span class="hint">部位を選んでください</span>';
   document.getElementById('submitBtn').disabled=!all.length;
 }
-async function showConfirm() {
-  const momiTags = document.getElementById('modalMomiTags');
-  const stretchTags = document.getElementById('modalStretchTags');
-  const momiSection = document.getElementById('modalMomi');
-  const stretchSection = document.getElementById('modalStretch');
-  
-  momiTags.innerHTML = '';
-  stretchTags.innerHTML = '';
-  
-  const momiSelected = [...selectedZones].filter(k => zoneMode[k] === 'momi');
-  const stretchSelected = [...selectedZones].filter(k => zoneMode[k] === 'stretch');
-  
-  if(momiSelected.length > 0) {
-    momiSection.style.display = 'block';
-    momiSelected.forEach(k => {
-      const tag = document.createElement('span');
-      tag.className = 'tag momi';
-      tag.textContent = k;
-      momiTags.appendChild(tag);
-    });
-  } else {
-    momiSection.style.display = 'none';
-  }
-  
-  if(stretchSelected.length > 0) {
-    stretchSection.style.display = 'block';
-    stretchSelected.forEach(k => {
-      const tag = document.createElement('span');
-      tag.className = 'tag stretch';
-      tag.textContent = k;
-      stretchTags.appendChild(tag);
-    });
-  } else {
-    stretchSection.style.display = 'none';
-  }
-  
-  document.getElementById('confirmModal').classList.add('show');
-}
 
-function closeConfirm() {
-  document.getElementById('confirmModal').classList.remove('show');
-}function submitForm(){
+function submitForm(){
   const momi=[...sel.momi].join('、');
   const stretch=[...sel.stretch].join('、');
   if(!momi&&!stretch)return;
