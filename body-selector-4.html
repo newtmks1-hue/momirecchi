@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<htmfl lang="ja">
+<html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -47,12 +47,11 @@ header p{font-size:11px;opacity:0.6;margin-top:2px;}
 .done-screen h2{font-size:22px;font-weight:700;margin-bottom:10px;}
 .done-screen p{font-size:14px;opacity:0.8;line-height:1.7;}
 .done-screen .back-btn{margin-top:30px;padding:14px 32px;background:white;color:var(--primary);border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;}
-
-
+</style>
+</head>
 <body>
 
 <!-- 送信完了画面 -->
-
 <div class="done-screen" id="doneScreen">
   <div class="check">✅</div>
   <h2>送信完了！</h2>
@@ -163,7 +162,7 @@ header p{font-size:11px;opacity:0.6;margin-top:2px;}
   <div class="tags" id="tags"><span class="hint">部位を選んでください</span></div>
 </div>
 <div class="submit-bar">
-  <button class="submit-btn" id="submitBtn" disabled onclick="submitFormF()">次へ進む →</button>
+  <button class="submit-btn" id="submitBtn" disabled onclick="submitForm()">次へ進む →</button>
   <p class="note">揉みほぐし・ストレッチ切り替えて両方選べます</p>
 </div>
 
@@ -174,7 +173,7 @@ const STRETCH_OK=new Set(['首','肩','背中','肩甲骨','腕','腰','股関�
 const ALWAYS_NG=new Set(['胸','お腹','股間','肛門','膝']);
 let mode='momi';
 let sel={momi:new Set(),stretch:new Set()};
-let zoneMode={};
+
 function partName(id){
   return id.replace(/^[zl]-/,'').replace(/-[FfBb][LRlr12]?$/,'').replace(/-[FfBb]$/,'');
 }
@@ -220,8 +219,7 @@ function updateTags(){
   c.innerHTML=all.length?all.map(({p,t})=>`<span class="tag ${t}">${p}</span>`).join(''):'<span class="hint">部位を選んでください</span>';
   document.getElementById('submitBtn').disabled=!all.length;
 }
-
-function submitForm(){
+async function submitForm(){
   const momi=[...sel.momi].join('、');
   const stretch=[...sel.stretch].join('、');
   if(!momi&&!stretch)return;
