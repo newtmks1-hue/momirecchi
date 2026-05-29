@@ -162,7 +162,7 @@ header p{font-size:11px;opacity:0.6;margin-top:2px;}
   <div class="tags" id="tags"><span class="hint">部位を選んでください</span></div>
 </div>
 <div class="submit-bar">
-  <button class="submit-btn" id="submitBtn" disabled onclick="submitForm()">次へ進む →</button>
+  <button class="submit-btn" id="submitBtn" disabled onclick="showConfirm()">次へ進む →</button>
   <p class="note">揉みほぐし・ストレッチ切り替えて両方選べます</p>
 </div>
 
@@ -219,7 +219,14 @@ function updateTags(){
   c.innerHTML=all.length?all.map(({p,t})=>`<span class="tag ${t}">${p}</span>`).join(''):'<span class="hint">部位を選んでください</span>';
   document.getElementById('submitBtn').disabled=!all.length;
 }
-async function submitForm(){
+function showConfirm(){
+  const momi=[...sel.momi].join('、');
+  const stretch=[...sel.stretch].join('、');
+  const txt=(momi?'【揉みほぐし】'+momi+'\n':'')+(stretch?'【ストレッチ】'+stretch:'');
+  if(confirm(txt+'\n\nこの内容でよろしいですか？')){
+    submitForm();
+  }
+}async function submitForm(){
   const momi=[...sel.momi].join('、');
   const stretch=[...sel.stretch].join('、');
   if(!momi&&!stretch)return;
