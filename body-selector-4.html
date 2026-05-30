@@ -92,12 +92,12 @@ function goToBodySelect(){
   customerName=document.getElementById('i-name').value.trim();
   customerPhone=document.getElementById('i-phone').value.trim();
   customerDatetime=document.getElementById('i-datetime').value;
-  customerVisit=document.querySelector('input[name="i-visit"]:checked');
+  customerVisit=document.querySelector('input[name="i-visit"]:checked')?.value||'';
   if(!customerName){alert('お名前を入力してください');return;}
   if(!customerPhone){alert('電話番号を入力してください');return;}
   if(!customerDatetime){alert('ご希望日時を入力してください');return;}
  if(!customerVisit){alert('初回・リピートを選択してください');return;}
-  document.getElementById('infoScreen').style.display='none';
+  customerMemo=document.getElementById('i-memo').value;document.getElementById('infoScreen').style.display='none';
 }
 </script>
 <header>
