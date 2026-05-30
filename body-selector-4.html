@@ -282,7 +282,7 @@ function showConfirm(){
       method:'POST',
       mode:'no-cors',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({momi,stretch})
+      body:JSON.stringify({momi,stretch,name:document.getElementById('i-name').value,phone:document.getElementById('i-phone').value,datetime:document.getElementById('i-datetime').value,visit:document.querySelector('input[name="i-visit"]:checked')?.value||'',memo:document.getElementById('i-memo').value})
     });
     // no-corsなので成功とみなす
     showDone(momi,stretch);
