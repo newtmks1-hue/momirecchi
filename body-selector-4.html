@@ -93,10 +93,10 @@ function goToBodySelect(){
   customerPhone=document.getElementById('i-phone').value.trim();
   customerDatetime=document.getElementById('i-datetime').value;
   customerVisit=document.querySelector('input[name="i-visit"]:checked');
-  if(!name){alert('お名前を入力してください');return;}
-  if(!phone){alert('電話番号を入力してください');return;}
-  if(!dt){alert('ご希望日時を入力してください');return;}
-  if(!visit){alert('初回・リピートを選択してください');return;}
+  if(!customerName){alert('お名前を入力してください');return;}
+  if(!customerPhone){alert('電話番号を入力してください');return;}
+  if(!customerDatetime){alert('ご希望日時を入力してください');return;}
+ if(!customerVisit){alert('初回・リピートを選択してください');return;}
   document.getElementById('infoScreen').style.display='none';
 }
 </script>
