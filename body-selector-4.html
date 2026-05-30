@@ -89,10 +89,10 @@ document.querySelectorAll('input[name="i-visit"]').forEach(r=>{
   });
 });
 function goToBodySelect(){
-  const name=document.getElementById('i-name').value.trim();
-  const phone=document.getElementById('i-phone').value.trim();
-  const dt=document.getElementById('i-datetime').value;
-  const visit=document.querySelector('input[name="i-visit"]:checked');
+  customerName=document.getElementById('i-name').value.trim();
+  customerPhone=document.getElementById('i-phone').value.trim();
+  customerDatetime=document.getElementById('i-datetime').value;
+  customerVisit=document.querySelector('input[name="i-visit"]:checked');
   if(!name){alert('お名前を入力してください');return;}
   if(!phone){alert('電話番号を入力してください');return;}
   if(!dt){alert('ご希望日時を入力してください');return;}
@@ -213,6 +213,7 @@ const MOMI_OK=new Set(['頭','顔','首','鎖骨周り','肩','背中','肩甲�
 const STRETCH_OK=new Set(['首','肩','背中','肩甲骨','腕','腰','股関節','前腿','後腿','ふくらはぎ','足首']);
 const ALWAYS_NG=new Set(['胸','お腹','股間','肛門','膝']);
 let mode='momi';
+let customerName='',customerPhone='',customerDatetime='',customerVisit='',customerMemo='';
 let sel={momi:new Set(),stretch:new Set()};
 
 function partName(id){
@@ -282,7 +283,7 @@ function showConfirm(){
       method:'POST',
       mode:'no-cors',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({momi,stretch,name:document.getElementById('i-name').value,phone:document.getElementById('i-phone').value,datetime:document.getElementById('i-datetime').value,visit:document.querySelector('input[name="i-visit"]:checked')?.value||'',memo:document.getElementById('i-memo').value})
+     body:JSON.stringify({momi,stretch,name:customerName,phone:customerPhone,datetime:customerDatetime,visit:customerVisit,memo:customerMemo}),
     });
     // no-corsなので成功とみなす
     showDone(momi,stretch);
