@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>もみレッチ｜ご予約</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: #f0f7f2;
+  color: #1a2e1f;
+  min-height: 100vh;
+}
+
+/* ヘッダー */
+header {
+  background: #3a7d5a;
+  color: white;
+  text-align: center;
+  padding: 20px 16px 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+header h1 {
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+header p {
+  font-size: 0.75rem;
+  margin-top: 4px;
+  opacity: 0.85;
+}
+
+/* ステップバー */
+.steps {
+  display: flex;
+  background: white;
+  border-bottom: 2px solid #d4edde;
+}
+.step {
+  flex: 1;
+  text-align: center;
+  padding: 10px 4px;
+  font-size: 0.62rem;
+  color: #aaa;
+  border-right: 1px solid #e8f4ec;
+  line-height: 1.4;
+  font-weight: 700;
+}
+.step:last-child { border-right: none; }
+.step .num {
+  display: block;
+  width: 22px; height: 22px;
+  line-height: 22px;
+  border-radius: 50%;
+  background: #e0e8e2;
+  color: #888;
+  font-size: 0.7rem;
+  font-weight: 900;
+  margin: 0 auto 4px;
+}
+.step.active .num { background: #3a7d5a; color: white; }
+.step.active { color: #3a7d5a; }
+.step.done .num { background: #7ab893; color: white; }
+.step.done { color: #7ab893; }
+
+/* セクション */
+.section { display: none; padding: 20px 16px 40px; max-width: 480px; margin: 0 auto; animation: fadeIn 0.25s ease; }
+.section.active { display: block; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+
+.section-title {
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #3a7d5a;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #c8e8d4;
+}
+
+/* スタッフカード */
+.staff-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+.staff-card {
+  background: white;
+  border: 2px solid #d4edde;
+  border-radius: 16px;
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.staff-card:active, .staff-card.selected {
+  border-color: #3a7d5a;
+  background: #eef7f1;
+}
+.staff-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: #d4edde;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+.staff-info { flex: 1; }
+.staff-name {
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a2e1f;
+  margin-bottom: 2px;
+}
+.staff-label { font-size: 0.72rem; color: #5a8a6a; font-weight: 700; }
+.staff-check {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 2px solid #c8d8c4;
+  background: white;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem;
+}
+.staff-card.selected .staff-check {
+  background: #3a7d5a;
+  border-color: #3a7d5a;
+  color: white;
+}
+.staff-card.selected .staff-check::after { content: '✓'; }
+
+/* 日時選択 */
+.loading {
+  text-align: center;
+  padding: 40px 20px;
+  color: #5a8a6a;
+  font-size: 0.9rem;
+}
+.loading::before {
+  content: '🌿';
+  display: block;
+  font-size: 2rem;
+  margin-bottom: 10px;
+  animation: spin 1.5s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.date-group { margin-bottom: 20px; }
+.date-label {
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #3a7d5a;
+  margin-bottom: 8px;
+  padding: 6px 12px;
+  background: #eef7f1;
+  border-radius: 8px;
+  border-left: 4px solid #3a7d5a;
+}
+.slot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.slot-btn {
+  padding: 12px 8px;
+  border: 2px solid #d4edde;
+  border-radius: 10px;
+  background: white;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #3a6a4a;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+}
+.slot-btn:active, .slot-btn.selected {
+  border-color: #3a7d5a;
+  background: #eef7f1;
+  color: #1a4a2a;
+}
+.slot-time { font-size: 1rem; font-weight: 900; display: block; }
+.slot-staff { font-size: 0.65rem; color: #7aaa8a; margin-top: 2px; display: block; }
+.no-slots {
+  text-align: center;
+  padding: 30px;
+  color: #888;
+  font-size: 0.85rem;
+  background: white;
+  border-radius: 12px;
+  border: 2px dashed #d4edde;
+}
+
+/* フォーム */
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #3a5a40;
+  margin-bottom: 6px;
+}
+.form-group label .req { color: #c05050; font-size: 0.7rem; margin-left: 4px; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  padding: 13px 14px;
+  border: 2px solid #d4edde;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  background: white;
+  color: #1a2e1f;
+  outline: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+.form-group input:focus, .form-group select:focus { border-color: #3a7d5a; }
+.form-group textarea { resize: vertical; min-height: 70px; }
+.toggle-group { display: flex; gap: 10px; }
+.toggle-btn {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid #d4edde;
+  border-radius: 10px;
+  background: white;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #888;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.toggle-btn.selected { border-color: #3a7d5a; background: #eef7f1; color: #2a5a3a; }
+.error-msg { color: #c05050; font-size: 0.75rem; margin-top: 4px; display: none; }
+.has-error input, .has-error select { border-color: #c05050; }
+.has-error .error-msg { display: block; }
+
+/* 確認 */
+.confirm-card {
+  background: white;
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 14px;
+  border: 2px solid #d4edde;
+}
+.confirm-card h3 {
+  font-size: 0.72rem;
+  color: #3a7d5a;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e8f4ec;
+}
+.confirm-row { display: flex; gap: 10px; margin-bottom: 8px; font-size: 0.85rem; }
+.confirm-row .key { color: #888; min-width: 80px; flex-shrink: 0; font-weight: 500; }
+.confirm-row .val { color: #1a2e1f; font-weight: 700; }
+
+/* ボタン */
+.btn-next {
+  width: 100%;
+  padding: 16px;
+  background: #3a7d5a;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 900;
+  cursor: pointer;
+  font-family: 'Zen Maru Gothic', sans-serif;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(58,125,90,0.3);
+  margin-top: 8px;
+}
+.btn-next:active { background: #2a5a3a; transform: scale(0.98); }
+.btn-next:disabled { background: #aaa; box-shadow: none; }
+.btn-back {
+  width: 100%;
+  padding: 13px;
+  background: transparent;
+  color: #5a8a6a;
+  border: 2px solid #c8e8d4;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+  transition: all 0.2s;
+  margin-top: 10px;
+}
+.btn-back:active { background: #eef7f1; }
+.btn-submit {
+  width: 100%;
+  padding: 18px;
+  background: #3a7d5a;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 900;
+  cursor: pointer;
+  font-family: 'Zen Maru Gothic', sans-serif;
+  transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(58,125,90,0.3);
+}
+.btn-submit:disabled { background: #aaa; box-shadow: none; }
+
+/* 完了 */
+.complete { text-align: center; padding: 40px 20px; }
+.complete .big-icon { font-size: 4rem; margin-bottom: 16px; }
+.complete h2 { font-family: 'Zen Maru Gothic', sans-serif; font-size: 1.3rem; color: #3a7d5a; margin-bottom: 12px; }
+.complete p { font-size: 0.85rem; color: #5a7060; line-height: 1.8; margin-bottom: 8px; }
+.booking-id-box {
+  background: #eef7f1;
+  border: 2px solid #c8e8d4;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 20px 0;
+  text-align: center;
+}
+.booking-id-box .label { font-size: 0.75rem; color: #5a8a6a; font-weight: 700; margin-bottom: 6px; }
+.booking-id-box .id { font-size: 1.4rem; font-weight: 900; color: #2a5a3a; letter-spacing: 0.1em; font-family: 'Zen Maru Gothic', sans-serif; }
+
+/* キャンセルページ */
+.cancel-section { padding: 20px 16px 40px; max-width: 480px; margin: 0 auto; }
+.tab-group { display: flex; margin-bottom: 24px; background: white; border-radius: 12px; padding: 4px; border: 2px solid #d4edde; }
+.tab-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: transparent;
+  color: #888;
+  font-family: 'Noto Sans JP', sans-serif;
+  transition: all 0.2s;
+}
+.tab-btn.active { background: #3a7d5a; color: white; }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌿 もみレッチ｜ご予約</h1>
+  <p>ご予約・キャンセルはこちらから</p>
+</header>
+
+<!-- タブ -->
+<div style="padding:16px 16px 0; max-width:480px; margin:0 auto;">
+  <div class="tab-group">
+    <button class="tab-btn active" onclick="showTab('booking')">📅 新規予約</button>
+    <button class="tab-btn" onclick="showTab('cancel')">❌ キャンセル</button>
+  </div>
+</div>
+
+<!-- ===== 予約フロー ===== -->
+<div id="booking-flow">
+
+<!-- ステップバー -->
+<div class="steps">
+  <div class="step active" id="si1"><span class="num">1</span>スタッフ<br>選択</div>
+  <div class="step" id="si2"><span class="num">2</span>日時<br>選択</div>
+  <div class="step" id="si3"><span class="num">3</span>お客様<br>情報</div>
+  <div class="step" id="si4"><span class="num">4</span>確認・<br>送信</div>
+</div>
+
+<!-- ① スタッフ選択 -->
+<div class="section active" id="sec1">
+  <div class="section-title">👤 スタッフ選択</div>
+  <p style="font-size:0.82rem;color:#5a7060;margin-bottom:16px;font-weight:500;">担当スタッフをお選びください</p>
+
+  <div class="staff-grid" id="staff-list">
+    <div class="loading">スタッフ情報を読み込み中...</div>
+  </div>
+
+  <div style="margin-bottom:16px;">
+    <div class="staff-card" id="card-any" onclick="selectStaff('any','おまかせ')">
+      <div class="staff-avatar">🙌</div>
+      <div class="staff-info">
+        <div class="staff-name">おまかせ</div>
+        <div class="staff-label">空いているスタッフに自動振り分け</div>
+      </div>
+      <div class="staff-check" id="check-any"></div>
+    </div>
+  </div>
+
+  <button class="btn-next" id="btn1" onclick="goStep2()" disabled>次へ：日時を選ぶ →</button>
+</div>
+
+<!-- ② 日時選択 -->
+<div class="section" id="sec2">
+  <div class="section-title">📅 日時選択</div>
+  <div id="slots-container">
+    <div class="loading">空き枠を読み込み中...</div>
+  </div>
+  <button class="btn-next" id="btn2" onclick="goStep3()" disabled>次へ：お客様情報 →</button>
+  <button class="btn-back" onclick="goStep(1)">← 戻る</button>
+</div>
+
+<!-- ③ お客様情報 -->
+<div class="section" id="sec3">
+  <div class="section-title">📋 お客様情報</div>
+
+  <div class="form-group" id="fg-name">
+    <label>お名前<span class="req">※必須</span></label>
+    <input type="text" id="inp-name" placeholder="例：山田 花子">
+    <div class="error-msg">お名前を入力してください</div>
+  </div>
+
+  <div class="form-group" id="fg-phone">
+    <label>電話番号<span class="req">※必須</span></label>
+    <input type="tel" id="inp-phone" placeholder="例：090-0000-0000" inputmode="tel">
+    <div class="error-msg">電話番号を入力してください</div>
+  </div>
+
+  <div class="form-group" id="fg-visit">
+    <label>初回・リピート<span class="req">※必須</span></label>
+    <div class="toggle-group">
+      <button class="toggle-btn" id="btn-first" onclick="selectVisit('first')">🌱 初回</button>
+      <button class="toggle-btn" id="btn-repeat" onclick="selectVisit('repeat')">🔄 リピート</button>
+    </div>
+    <div class="error-msg" id="visit-error">選択してください</div>
+  </div>
+
+  <div class="form-group" id="fg-course">
+    <label>コース<span class="req">※必須</span></label>
+    <select id="inp-course">
+      <option value="">選択してください</option>
+      <option value="揉みほぐし＋ストレッチ 60分">揉みほぐし＋ストレッチ 60分</option>
+      <option value="揉みほぐし＋ストレッチ 90分">揉みほぐし＋ストレッチ 90分</option>
+      <option value="揉みほぐし＋ストレッチ 120分">揉みほぐし＋ストレッチ 120分</option>
+      <option value="揉みほぐしのみ 60分">揉みほぐしのみ 60分</option>
+      <option value="揉みほぐしのみ 90分">揉みほぐしのみ 90分</option>
+      <option value="揉みほぐしのみ 120分">揉みほぐしのみ 120分</option>
+      <option value="ストレッチのみ 60分">ストレッチのみ 60分</option>
+      <option value="ストレッチのみ 90分">ストレッチのみ 90分</option>
+      <option value="ストレッチのみ 120分">ストレッチのみ 120分</option>
+    </select>
+    <div class="error-msg">コースを選択してください</div>
+  </div>
+
+  <div class="form-group">
+    <label>メモ・症状（任意）</label>
+    <textarea id="inp-memo" placeholder="気になる症状・要望などがあればご記入ください"></textarea>
+  </div>
+
+  <button class="btn-next" onclick="goStep4()">次へ：確認 →</button>
+  <button class="btn-back" onclick="goStep(2)">← 戻る</button>
+</div>
+
+<!-- ④ 確認・送信 -->
+<div class="section" id="sec4">
+  <div class="section-title">✅ 確認・送信</div>
+
+  <div class="confirm-card">
+    <h3>予約内容</h3>
+    <div class="confirm-row"><span class="key">スタッフ</span><span class="val" id="cf-staff">—</span></div>
+    <div class="confirm-row"><span class="key">日時</span><span class="val" id="cf-datetime">—</span></div>
+    <div class="confirm-row"><span class="key">コース</span><span class="val" id="cf-course">—</span></div>
+  </div>
+
+  <div class="confirm-card">
+    <h3>お客様情報</h3>
+    <div class="confirm-row"><span class="key">お名前</span><span class="val" id="cf-name">—</span></div>
+    <div class="confirm-row"><span class="key">電話番号</span><span class="val" id="cf-phone">—</span></div>
+    <div class="confirm-row"><span class="key">初回/リピート</span><span class="val" id="cf-visit">—</span></div>
+    <div class="confirm-row"><span class="key">メモ</span><span class="val" id="cf-memo">—</span></div>
+  </div>
+
+  <button class="btn-submit" id="btn-submit" onclick="submitBooking()">📨 この内容で予約する</button>
+  <button class="btn-back" onclick="goStep(3)">← 戻る</button>
+</div>
+
+<!-- ⑤ 完了 -->
+<div class="section" id="sec5">
+  <div class="complete">
+    <div class="big-icon">🌿</div>
+    <h2>ご予約を受け付けました</h2>
+    <div class="booking-id-box">
+      <div class="label">予約番号（キャンセル時に必要です）</div>
+      <div class="id" id="booking-id-display">—</div>
+    </div>
+    <p>確認のご連絡をさせていただきますので、<br>しばらくお待ちください。</p>
+    <p style="margin-top:12px;font-size:0.75rem;color:#888;">予約番号は必ずスクリーンショットを撮って保存してください。</p>
+  </div>
+</div>
+
+</div><!-- /booking-flow -->
+
+<!-- ===== キャンセルフロー ===== -->
+<div id="cancel-flow" class="hidden">
+  <div class="cancel-section">
+    <div class="section-title">❌ 予約キャンセル</div>
+    <p style="font-size:0.82rem;color:#5a7060;margin-bottom:20px;font-weight:500;">予約番号と電話番号を入力してキャンセルしてください。</p>
+
+    <div class="form-group" id="fg-cancel-id">
+      <label>予約番号<span class="req">※必須</span></label>
+      <input type="text" id="cancel-booking-id" placeholder="例：MR260623103045">
+      <div class="error-msg">予約番号を入力してください</div>
+    </div>
+
+    <div class="form-group" id="fg-cancel-phone">
+      <label>電話番号<span class="req">※必須</span></label>
+      <input type="tel" id="cancel-phone" placeholder="例：090-0000-0000" inputmode="tel">
+      <div class="error-msg">電話番号を入力してください</div>
+    </div>
+
+    <button class="btn-next" onclick="submitCancel()">キャンセルする</button>
+
+    <div id="cancel-result" style="margin-top:20px;text-align:center;display:none;">
+      <div style="font-size:2rem;margin-bottom:8px;" id="cancel-icon">✅</div>
+      <p style="font-size:0.9rem;font-weight:700;" id="cancel-message"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== 設定 =====
+const GAS_URL = 'https://script.google.com/macros/s/AKfycby5-IVBqgwikKLaeZJs4kK2jXq9OyQ6NRAfumNn0fDSfH9L8FwQ0mvEUQJdyORQp_ov/exec';
+
+// ===== 状態 =====
+let selectedStaffId = null;
+let selectedStaffName = null;
+let selectedSlot = null;
+let visitType = '';
+let staffList = [];
+
+// ===== タブ切り替え =====
+function showTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', (i===0 && tab==='booking') || (i===1 && tab==='cancel'));
+  });
+  document.getElementById('booking-flow').classList.toggle('hidden', tab !== 'booking');
+  document.getElementById('cancel-flow').classList.toggle('hidden', tab !== 'cancel');
+}
+
+// ===== スタッフ読み込み =====
+async function loadStaff() {
+  try {
+    const res = await fetch(GAS_URL + '?action=getStaff');
+    const data = await res.json();
+    staffList = data.staff || [];
+
+    const container = document.getElementById('staff-list');
+    container.innerHTML = '';
+
+    if (staffList.length === 0) {
+      container.innerHTML = '<p style="color:#888;font-size:0.85rem;text-align:center;">スタッフ情報を読み込めませんでした</p>';
+      return;
+    }
+
+    staffList.forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'staff-card';
+      card.id = 'card-' + s.id;
+      card.onclick = () => selectStaff(s.id, s.name);
+      card.innerHTML = `
+        <div class="staff-avatar">👤</div>
+        <div class="staff-info">
+          <div class="staff-name">${s.name}</div>
+          <div class="staff-label">スタッフ指名</div>
+        </div>
+        <div class="staff-check" id="check-${s.id}"></div>
+      `;
+      container.appendChild(card);
+    });
+  } catch(e) {
+    document.getElementById('staff-list').innerHTML = '<p style="color:#888;font-size:0.85rem;text-align:center;">読み込みエラー</p>';
+  }
+}
+
+// ===== スタッフ選択 =====
+function selectStaff(id, name) {
+  selectedStaffId = id;
+  selectedStaffName = name;
+
+  document.querySelectorAll('.staff-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.staff-check').forEach(c => { c.textContent = ''; });
+
+  const card = document.getElementById('card-' + id);
+  if (card) {
+    card.classList.add('selected');
+    const check = document.getElementById('check-' + id);
+    if (check) check.textContent = '✓';
+  }
+
+  document.getElementById('btn1').disabled = false;
+}
+
+// ===== ステップ2へ =====
+async function goStep2() {
+  goStep(2);
+  await loadSlots();
+}
+
+// ===== 空き枠読み込み =====
+async function loadSlots() {
+  const container = document.getElementById('slots-container');
+  container.innerHTML = '<div class="loading">空き枠を読み込み中...</div>';
+  document.getElementById('btn2').disabled = true;
+
+  try {
+    const staffParam = selectedStaffId !== 'any' ? '&staffId=' + selectedStaffId : '';
+    const res = await fetch(GAS_URL + '?action=getSlots' + staffParam);
+    const data = await res.json();
+    const slots = data.slots || [];
+
+    if (slots.length === 0) {
+      container.innerHTML = '<div class="no-slots">🗓️ 現在空き枠がありません。<br>しばらく後にもう一度ご確認ください。</div>';
+      return;
+    }
+
+    // 日付ごとにグループ化
+    const groups = {};
+    slots.forEach(slot => {
+      const date = new Date(slot.start);
+      const dateKey = date.toLocaleDateString('ja-JP', { month:'long', day:'numeric', weekday:'short' });
+      if (!groups[dateKey]) groups[dateKey] = [];
+      groups[dateKey].push(slot);
+    });
+
+    container.innerHTML = '';
+    Object.keys(groups).forEach(dateKey => {
+      const group = document.createElement('div');
+      group.className = 'date-group';
+      group.innerHTML = `<div class="date-label">📅 ${dateKey}</div>`;
+
+      const grid = document.createElement('div');
+      grid.className = 'slot-grid';
+
+      groups[dateKey].forEach(slot => {
+        const date = new Date(slot.start);
+        const time = date.toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' });
+        const btn = document.createElement('button');
+        btn.className = 'slot-btn';
+        btn.dataset.slotId = slot.slotId;
+        btn.innerHTML = `<span class="slot-time">${time}</span><span class="slot-staff">${slot.staffName}</span>`;
+        btn.onclick = () => selectSlot(slot, btn);
+        grid.appendChild(btn);
+      });
+
+      group.appendChild(grid);
+      container.appendChild(group);
+    });
+
+  } catch(e) {
+    container.innerHTML = '<div class="no-slots">読み込みエラーが発生しました。<br>再度お試しください。</div>';
+  }
+}
+
+// ===== 枠選択 =====
+function selectSlot(slot, btn) {
+  selectedSlot = slot;
+  document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('btn2').disabled = false;
+}
+
+// ===== ステップ管理 =====
+function goStep(n) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec' + n).classList.add('active');
+  document.querySelectorAll('.step').forEach((s, i) => {
+    s.classList.remove('active','done');
+    if (i+1 < n) s.classList.add('done');
+    else if (i+1 === n) s.classList.add('active');
+  });
+  window.scrollTo(0,0);
+}
+
+// ===== 初回/リピート =====
+function selectVisit(type) {
+  visitType = type;
+  document.getElementById('btn-first').classList.toggle('selected', type==='first');
+  document.getElementById('btn-repeat').classList.toggle('selected', type==='repeat');
+  document.getElementById('visit-error').style.display = 'none';
+}
+
+// ===== ステップ3へ =====
+function goStep3() {
+  goStep(3);
+}
+
+// ===== ステップ4へ（バリデーション） =====
+function goStep4() {
+  let ok = true;
+  ['fg-name','fg-phone','fg-course'].forEach(id => document.getElementById(id).classList.remove('has-error'));
+
+  if (!document.getElementById('inp-name').value.trim()) {
+    document.getElementById('fg-name').classList.add('has-error'); ok = false;
+  }
+  if (!document.getElementById('inp-phone').value.trim()) {
+    document.getElementById('fg-phone').classList.add('has-error'); ok = false;
+  }
+  if (!document.getElementById('inp-course').value) {
+    document.getElementById('fg-course').classList.add('has-error'); ok = false;
+  }
+  if (!visitType) {
+    document.getElementById('visit-error').style.display = 'block'; ok = false;
+  }
+  if (!ok) return;
+
+  // 確認画面に反映
+  const date = new Date(selectedSlot.start);
+  const dtStr = date.toLocaleDateString('ja-JP', { month:'long', day:'numeric', weekday:'short' })
+    + ' ' + date.toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' });
+
+  document.getElementById('cf-staff').textContent = selectedStaffName === 'おまかせ' ? 'おまかせ（自動振り分け）' : selectedStaffName + ' スタッフ';
+  document.getElementById('cf-datetime').textContent = dtStr;
+  document.getElementById('cf-course').textContent = document.getElementById('inp-course').value;
+  document.getElementById('cf-name').textContent = document.getElementById('inp-name').value;
+  document.getElementById('cf-phone').textContent = document.getElementById('inp-phone').value;
+  document.getElementById('cf-visit').textContent = visitType === 'first' ? '🌱 初回' : '🔄 リピート';
+  document.getElementById('cf-memo').textContent = document.getElementById('inp-memo').value || '（なし）';
+
+  goStep(4);
+}
+
+// ===== 予約送信 =====
+async function submitBooking() {
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  btn.textContent = '送信中...';
+
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'createBooking',
+        slotId: selectedSlot.slotId,
+        staffId: selectedStaffId !== 'any' ? selectedStaffId : null,
+        name: document.getElementById('inp-name').value,
+        phone: document.getElementById('inp-phone').value,
+        course: document.getElementById('inp-course').value,
+        visit: visitType,
+        memo: document.getElementById('inp-memo').value
+      })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      document.getElementById('booking-id-display').textContent = data.bookingId;
+      goStep(5);
+    } else {
+      alert('⚠️ ' + data.message);
+      btn.disabled = false;
+      btn.textContent = '📨 この内容で予約する';
+    }
+  } catch(e) {
+    alert('通信エラーが発生しました。もう一度お試しください。');
+    btn.disabled = false;
+    btn.textContent = '📨 この内容で予約する';
+  }
+}
+
+// ===== キャンセル送信 =====
+async function submitCancel() {
+  let ok = true;
+  ['fg-cancel-id','fg-cancel-phone'].forEach(id => document.getElementById(id).classList.remove('has-error'));
+
+  if (!document.getElementById('cancel-booking-id').value.trim()) {
+    document.getElementById('fg-cancel-id').classList.add('has-error'); ok = false;
+  }
+  if (!document.getElementById('cancel-phone').value.trim()) {
+    document.getElementById('fg-cancel-phone').classList.add('has-error'); ok = false;
+  }
+  if (!ok) return;
+
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'cancelBooking',
+        bookingId: document.getElementById('cancel-booking-id').value.trim(),
+        phone: document.getElementById('cancel-phone').value.trim()
+      })
+    });
+    const data = await res.json();
+
+    const resultDiv = document.getElementById('cancel-result');
+    resultDiv.style.display = 'block';
+    document.getElementById('cancel-icon').textContent = data.success ? '✅' : '❌';
+    document.getElementById('cancel-message').textContent = data.message;
+  } catch(e) {
+    alert('通信エラーが発生しました。もう一度お試しください。');
+  }
+}
+
+// ===== 初期化 =====
+loadStaff();
+</script>
+</body>
+</html>
