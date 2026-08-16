@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>もみレッチ 空き状況</title>
+<style>
+  body { font-family: sans-serif; background: #fdf6f0; margin: 0; padding: 16px; }
+  h1 { font-size: 18px; text-align: center; color: #555; }
+  .day { background: white; border-radius: 12px; margin-bottom: 12px; padding: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+  .day-title { font-weight: bold; margin-bottom: 8px; }
+  .slots { display: flex; flex-wrap: wrap; gap: 6px; }
+  .slot { padding: 6px 10px; border-radius: 8px; font-size: 13px; }
+  .open { background: #d4f4dd; color: #1a7a3c; }
+  .busy { background: #f0f0f0; color: #999; text-decoration: line-through; }
+  .loading { text-align: center; color: #999; margin-top: 40px; }
+</style>
+</head>
+<body>
+<h1>もみレッチ 空き状況</h1>
+<div id="content" class="loading">読み込み中...</div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbwvcmGdM3f71KRugl5zAHG621S6XaulaO6XkTLmGn46lGMxqTPPEDahAz6FmtooMZDi/exec';
+
+fetch(API_URL)
+  .then(res => res.json())
+  .then(data => {
+    const grouped = {};
+    data.forEach(item => {
+      if (!grouped[item.date]) grouped[item.date] = [];
+      grouped[item.date].push(item);
+    });
+
+    const content = document.getElementById('content');
+    content.className = '';
+    content.innerHTML = '';
+
+    Object.keys(grouped).forEach(date => {
+      const d = new Date(date);
+      const youbi = ['日','月','火','水','木','金','土'][d.getDay()];
+      const dayDiv = document.createElement('div');
+      dayDiv.className = 'day';
+      dayDiv.innerHTML = `<div class="day-title">${date.slice(5)} (${youbi})</div>
+        <div class="slots">${grouped[date].map(s =>
+          `<span class="slot ${s.status === '空き' ? 'open' : 'busy'}">${s.time}</span>`
+        ).join('')}</div>`;
+      content.appendChild(dayDiv);
+    });
+  })
+  .catch(err => {
+    document.getElementById('content').innerText = '読み込みに失敗しました';
+  });
+</script>
+</body>
+</html>
