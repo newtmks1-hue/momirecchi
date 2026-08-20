@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Re:af｜空き状況・ご予約</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Hiragino Kaku Gothic ProN', 'ヒラギノ角ゴ ProN', Meiryo, sans-serif;
+    background: #f8f5f0;
+    color: #3a3028;
+    min-height: 100vh;
+  }
+
+  header {
+    background: #5a8a6a;
+    color: white;
+    text-align: center;
+    padding: 18px 16px 14px;
+  }
+  header h1 {
+    font-size: 1.25rem;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+  }
+  header p {
+    font-size: 0.75rem;
+    margin-top: 4px;
+    opacity: 0.85;
+  }
+
+  .wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 18px 16px 40px;
+  }
+
+  /* コース時間タブ */
+  .duration-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .duration-tab {
+    flex: 1;
+    padding: 12px 6px;
+    border: 2px solid #c8d8c0;
+    border-radius: 10px;
+    background: #fff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #4a7a5a;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .duration-tab .price {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: #888;
+    margin-top: 2px;
+  }
+  .duration-tab.selected {
+    border-color: #5a8a6a;
+    background: #eef6f0;
+    color: #2a5a3a;
+  }
+
+  .notice {
+    background: #f0f7f2;
+    border-left: 4px solid #5a8a6a;
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-size: 0.76rem;
+    color: #4a6a50;
+    line-height: 1.6;
+    margin-bottom: 18px;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 40px 0;
+    color: #999;
+    font-size: 0.85rem;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 40px 16px;
+    color: #999;
+    font-size: 0.85rem;
+    line-height: 1.7;
+  }
+
+  .date-group {
+    margin-bottom: 20px;
+  }
+  .date-heading {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #5a6a50;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #e0d8cc;
+  }
+  .date-heading .dow-sat { color: #4a7ac0; }
+  .date-heading .dow-sun { color: #c05050; }
+
+  .slot-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .slot-btn {
+    padding: 12px 4px;
+    border: 2px solid #c8d8c0;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #3a6a4a;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .slot-btn:active {
+    background: #eef6f0;
+    transform: scale(0.96);
+  }
+
+  .refresh-note {
+    text-align: center;
+    font-size: 0.72rem;
+    color: #aaa;
+    margin-top: 24px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌿 Re:af｜空き状況</h1>
+  <p>ご希望のコース時間と日時をお選びください</p>
+</header>
+
+<div class="wrap">
+  <div class="duration-tabs" id="duration-tabs">
+    <button class="duration-tab" data-duration="60" onclick="selectDuration(60)">60分<span class="price" id="price-60">—</span></button>
+    <button class="duration-tab" data-duration="90" onclick="selectDuration(90)">90分<span class="price" id="price-90">—</span></button>
+    <button class="duration-tab" data-duration="120" onclick="selectDuration(120)">120分<span class="price" id="price-120">—</span></button>
+  </div>
+
+  <div class="notice">
+    🌿 表示されている時間の中からご希望の枠をタップすると、そのままご予約フォームに進みます。
+  </div>
+
+  <div id="slots-area">
+    <div class="loading">空き状況を確認しています…</div>
+  </div>
+
+  <div class="refresh-note">※ 表示される空き状況はリアルタイムです</div>
+</div>
+
+<script>
+const GAS_URL = 'https://script.google.com/macros/s/AKfycby5-IVBqgwikKLaeZJs4kK2jXq9OyQ6NRAfumNn0fDSfH9L8FwQ0mvEUQJdyORQp_ov/exec';
+const FORM_URL = 'body-selector-4.html';
+
+let currentDuration = 60;
+let priceMap = {};
+
+const WEEKDAY_JA = ['日','月','火','水','木','金','土'];
+
+function fetchPrices() {
+  fetch(GAS_URL + '?action=getPrices')
+    .then(r => r.json())
+    .then(res => {
+      if (!res.success) return;
+      res.prices.forEach(p => {
+        priceMap[p.duration] = p.price;
+        const key = p.duration.replace('分','');
+        const el = document.getElementById('price-' + key);
+        if (el) el.textContent = '¥' + Number(p.price).toLocaleString();
+      });
+    })
+    .catch(() => {});
+}
+
+function selectDuration(min) {
+  currentDuration = min;
+  document.querySelectorAll('.duration-tab').forEach(btn => {
+    btn.classList.toggle('selected', Number(btn.dataset.duration) === min);
+  });
+  loadSlots();
+}
+
+function formatDateHeading(dateObj) {
+  const m = dateObj.getMonth() + 1;
+  const d = dateObj.getDate();
+  const dow = dateObj.getDay();
+  const dowClass = dow === 6 ? 'dow-sat' : (dow === 0 ? 'dow-sun' : '');
+  return `${m}/${d}（<span class="${dowClass}">${WEEKDAY_JA[dow]}</span>）`;
+}
+
+function formatTime(dateObj) {
+  const h = String(dateObj.getHours()).padStart(2,'0');
+  const mi = String(dateObj.getMinutes()).padStart(2,'0');
+  return `${h}:${mi}`;
+}
+
+function loadSlots() {
+  const area = document.getElementById('slots-area');
+  area.innerHTML = '<div class="loading">空き状況を確認しています…</div>';
+
+  fetch(GAS_URL + '?action=getSlots&duration=' + currentDuration)
+    .then(r => r.json())
+    .then(res => {
+      if (!res.success || !res.slots || res.slots.length === 0) {
+        area.innerHTML = '<div class="empty">現在、この時間帯でご案内できる空き枠がありません。<br>他のコース時間もお試しください。</div>';
+        return;
+      }
+
+      // 日付ごとにグループ化
+      const groups = {};
+      res.slots.forEach(slot => {
+        const start = new Date(slot.start);
+        const key = start.getFullYear() + '-' + (start.getMonth()+1) + '-' + start.getDate();
+        if (!groups[key]) groups[key] = { dateObj: start, items: [] };
+        groups[key].items.push(slot);
+      });
+
+      area.innerHTML = '';
+      Object.keys(groups).forEach(key => {
+        const group = groups[key];
+        const dateBlock = document.createElement('div');
+        dateBlock.className = 'date-group';
+
+        const heading = document.createElement('div');
+        heading.className = 'date-heading';
+        heading.innerHTML = formatDateHeading(group.dateObj);
+        dateBlock.appendChild(heading);
+
+        const grid = document.createElement('div');
+        grid.className = 'slot-grid';
+
+        group.items.forEach(slot => {
+          const start = new Date(slot.start);
+          const btn = document.createElement('button');
+          btn.className = 'slot-btn';
+          btn.textContent = formatTime(start);
+          btn.onclick = () => goToForm(slot);
+          grid.appendChild(btn);
+        });
+
+        dateBlock.appendChild(grid);
+        area.appendChild(dateBlock);
+      });
+    })
+    .catch(() => {
+      area.innerHTML = '<div class="empty">空き状況の取得に失敗しました。<br>時間をおいて再度お試しください。</div>';
+    });
+}
+
+function goToForm(slot) {
+  const price = priceMap[currentDuration + '分'] || '';
+  const params = new URLSearchParams({
+    slotId: slot.slotId,
+    staffId: slot.staffId,
+    staffName: slot.staffName,
+    duration: currentDuration,
+    price: price,
+    start: slot.start
+  });
+  window.location.href = FORM_URL + '?' + params.toString();
+}
+
+// 初期化
+fetchPrices();
+selectDuration(60);
+</script>
+</body>
+</html>
