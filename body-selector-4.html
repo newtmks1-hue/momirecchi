@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>もみレッチ｜ご予約</title>
+<title>Re:af｜ご予約</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -137,6 +137,60 @@
     border-color: #5a8a6a;
   }
   .form-group textarea { resize: vertical; min-height: 70px; }
+
+  /* 予約日時サマリー(空き状況ページから引き継ぎ) */
+  .booking-summary {
+    background: #eef6f0;
+    border: 1.5px solid #c8e0d0;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+  }
+  .booking-summary .bs-label {
+    font-size: 0.7rem;
+    color: #5a8a6a;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  .booking-summary .bs-datetime {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #2a5a3a;
+  }
+  .booking-summary .bs-sub {
+    font-size: 0.78rem;
+    color: #5a6a50;
+    margin-top: 4px;
+  }
+  .booking-summary .bs-change {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: #7a9a80;
+    text-decoration: underline;
+  }
+
+  .no-slot-warning {
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .no-slot-warning p {
+    font-size: 0.9rem;
+    color: #666;
+    line-height: 1.8;
+    margin-bottom: 20px;
+  }
+  .no-slot-warning a {
+    display: inline-block;
+    padding: 14px 28px;
+    background: #5a8a6a;
+    color: white;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
 
   /* 初回/リピートトグル */
   .toggle-group {
@@ -420,7 +474,7 @@
 <body>
 
 <header>
-  <h1>🌿 もみレッチ｜ご予約</h1>
+  <h1>🌿 Re:af｜ご予約</h1>
   <p>お客様情報・コース選択をご入力ください</p>
 </header>
 
@@ -456,10 +510,11 @@
     <div class="error-msg">電話番号を入力してください</div>
   </div>
 
-  <div class="form-group" id="fg-datetime">
-    <label>ご希望日時<span class="required">※必須</span></label>
-    <input type="datetime-local" id="inp-datetime">
-    <div class="error-msg">ご希望日時を入力してください</div>
+  <div class="booking-summary">
+    <div class="bs-label">ご予約日時</div>
+    <div class="bs-datetime" id="bs-datetime">—</div>
+    <div class="bs-sub" id="bs-sub">—</div>
+    <a class="bs-change" href="kuuki-v2.html">← 日時を変更する</a>
   </div>
 
   <div class="form-group">
@@ -614,6 +669,17 @@
   </div>
 </div>
 
+<!-- ⑥ 日時未指定でアクセスされた場合 -->
+<div class="section" id="sec0">
+  <div class="no-slot-warning">
+    <p>
+      🌿 ご予約には、まず空き状況ページで<br>
+      ご希望の日時をお選びください。
+    </p>
+    <a href="kuuki-v2.html">空き状況を見る →</a>
+  </div>
+</div>
+
 <script>
 // =====================
 // データ
@@ -635,6 +701,56 @@ const BOTH_PARTS = [...new Set([...MOMI_PARTS, ...STRETCH_PARTS])];
 let visitType = '';  // 'first' | 'repeat'
 let course = '';     // 'momi' | 'stretch' | 'both'
 let subMode = '';    // 'omakase' | 'custom'
+
+// 空き状況ページから引き継いだ予約枠情報
+let bookingSlot = {
+  slotId: null,
+  staffId: null,
+  staffName: null,
+  duration: null,
+  price: null,
+  start: null
+};
+
+const WEEKDAY_JA = ['日','月','火','水','木','金','土'];
+
+function formatBookingDateTime(iso) {
+  const d = new Date(iso);
+  const m = d.getMonth() + 1;
+  const day = d.getDate();
+  const dow = WEEKDAY_JA[d.getDay()];
+  const h = String(d.getHours()).padStart(2,'0');
+  const mi = String(d.getMinutes()).padStart(2,'0');
+  return `${m}月${day}日（${dow}） ${h}:${mi}〜`;
+}
+
+function initBookingSlotFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const slotId = params.get('slotId');
+  const staffId = params.get('staffId');
+  const staffName = params.get('staffName');
+  const duration = params.get('duration');
+  const price = params.get('price');
+  const start = params.get('start');
+
+  if (!slotId || !staffId || !duration || !start) {
+    // 日時未指定でアクセス → 案内画面のみ表示
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById('sec0').classList.add('active');
+    document.querySelector('.steps').style.display = 'none';
+    return false;
+  }
+
+  bookingSlot = { slotId, staffId, staffName, duration: Number(duration), price: price ? Number(price) : null, start };
+
+  document.getElementById('bs-datetime').textContent = formatBookingDateTime(start);
+  const durationLabel = duration + '分コース';
+  const priceLabel = price ? '　¥' + Number(price).toLocaleString() : '';
+  const staffLabel = staffName ? '　担当：' + staffName : '';
+  document.getElementById('bs-sub').textContent = durationLabel + priceLabel + staffLabel;
+
+  return true;
+}
 
 // =====================
 // チェックボックス生成
@@ -658,6 +774,7 @@ function buildChecks(containerId, parts) {
 buildChecks('momi-checks', MOMI_PARTS);
 buildChecks('stretch-checks', STRETCH_PARTS);
 buildChecks('both-checks', BOTH_PARTS);
+const hasValidSlot = initBookingSlotFromURL();
 
 // =====================
 // ステップ管理
@@ -689,18 +806,14 @@ function goToStep2() {
 
   const nameEl = document.getElementById('fg-name');
   const phoneEl = document.getElementById('fg-phone');
-  const dtEl    = document.getElementById('fg-datetime');
 
-  [nameEl, phoneEl, dtEl].forEach(el => el.classList.remove('has-error'));
+  [nameEl, phoneEl].forEach(el => el.classList.remove('has-error'));
 
   if (!document.getElementById('inp-name').value.trim()) {
     nameEl.classList.add('has-error'); ok = false;
   }
   if (!document.getElementById('inp-phone').value.trim()) {
     phoneEl.classList.add('has-error'); ok = false;
-  }
-  if (!document.getElementById('inp-datetime').value.trim()) {
-    dtEl.classList.add('has-error'); ok = false;
   }
   if (!visitType) {
     document.getElementById('visit-error').style.display = 'block'; ok = false;
@@ -793,7 +906,7 @@ function getChecked(containerId) {
 function buildConfirm() {
   document.getElementById('cf-name').textContent     = document.getElementById('inp-name').value;
   document.getElementById('cf-phone').textContent    = document.getElementById('inp-phone').value;
-  document.getElementById('cf-datetime').textContent = document.getElementById('inp-datetime').value;
+  document.getElementById('cf-datetime').textContent = formatBookingDateTime(bookingSlot.start) + '（' + bookingSlot.duration + '分コース）';
   document.getElementById('cf-visit').textContent    = visitType === 'first' ? '🌱 初回' : '🔄 リピート';
   const memo = document.getElementById('inp-memo').value.trim();
   document.getElementById('cf-memo').textContent     = memo || '（なし）';
@@ -846,7 +959,7 @@ function goBack(to) {
 // =====================
 // 送信
 // =====================
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbyiinFrWv_TNR7vCJqDjf3IuMCvGVQOCvHZjNYoHjVuEJn3MiMIqPKqNxwvVHg7Zq9/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycby5-IVBqgwikKLaeZJs4kK2jXq9OyQ6NRAfumNn0fDSfH9L8FwQ0mvEUQJdyORQp_ov/exec';
 
 function getPartsForSubmit() {
   if (course === 'momi') {
@@ -871,23 +984,44 @@ function submitForm() {
     both: '両方（揉みほぐし＋ストレッチ）'
   };
 
-  const data = new URLSearchParams({
+  const submitBtn = document.querySelector('.btn-submit');
+  submitBtn.disabled = true;
+  submitBtn.textContent = '送信中…';
+
+  const payload = {
+    action:   'createBooking',
     name:     document.getElementById('inp-name').value,
     phone:    document.getElementById('inp-phone').value,
-    datetime: document.getElementById('inp-datetime').value,
     visit:    visitType === 'first' ? '初回' : 'リピート',
-    course:   courseLabels[course],
+    course:   courseLabels[course] + '（' + bookingSlot.duration + '分）',
     parts:    getPartsForSubmit(),
-    memo:     document.getElementById('inp-memo').value
-  });
+    memo:     document.getElementById('inp-memo').value,
+    slotId:   bookingSlot.slotId,
+    staffId:  bookingSlot.staffId,
+    duration: bookingSlot.duration,
+    price:    bookingSlot.price
+  };
 
   fetch(GAS_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: data.toString()
+    body: JSON.stringify(payload)
   })
-  .then(() => showStep(5))
-  .catch(() => showStep(5)); // エラーでも完了画面へ
+  .then(r => r.json())
+  .then(res => {
+    if (res.success) {
+      showStep(5);
+    } else {
+      alert(res.message || 'この時間はすでに予約が埋まってしまった可能性があります。お手数ですが日時を選び直してください。');
+      submitBtn.disabled = false;
+      submitBtn.textContent = '📨 この内容で予約する';
+      window.location.href = 'kuuki-v2.html';
+    }
+  })
+  .catch(() => {
+    alert('通信エラーが発生しました。もう一度お試しください。');
+    submitBtn.disabled = false;
+    submitBtn.textContent = '📨 この内容で予約する';
+  });
 }
 </script>
 </body>
