@@ -115,6 +115,11 @@
     gap: 8px;
   }
   .slot-btn {
+    min-height: 52px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     padding: 12px 4px;
     border: 2px solid #c8d8c0;
     border-radius: 8px;
@@ -125,10 +130,37 @@
     cursor: pointer;
     text-align: center;
     transition: all 0.15s;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
+    opacity: 1;
+    font-family: inherit;
   }
   .slot-btn:active {
     background: #eef6f0;
     transform: scale(0.96);
+  }
+  .slot-btn.unavailable {
+    background: #e4e0d8;
+    border: 2px solid #d0cabc;
+    color: #9a9184;
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+    cursor: not-allowed;
+    opacity: 1;
+  }
+  .slot-btn.unavailable::after {
+    content: '予約済み';
+    display: block;
+    font-size: 0.62rem;
+    font-weight: 400;
+    text-decoration: none;
+    margin-top: 2px;
+    color: #a89f90;
+  }
+  .slot-btn.unavailable:active {
+    background: #e4e0d8;
+    transform: none;
   }
 
   .refresh-note {
@@ -218,7 +250,7 @@ function loadSlots() {
     .then(r => r.json())
     .then(res => {
       if (!res.success || !res.slots || res.slots.length === 0) {
-        area.innerHTML = '<div class="empty">現在、この時間帯でご案内できる空き枠がありません。<br>他のコース時間もお試しください。</div>';
+        area.innerHTML = '<div class="empty">現在、この時間帯でご案内できる時間がありません。<br>他のコース時間もお試しください。</div>';
         return;
       }
 
@@ -248,9 +280,13 @@ function loadSlots() {
         group.items.forEach(slot => {
           const start = new Date(slot.start);
           const btn = document.createElement('button');
-          btn.className = 'slot-btn';
+          btn.className = slot.available ? 'slot-btn' : 'slot-btn unavailable';
           btn.textContent = formatTime(start);
-          btn.onclick = () => goToForm(slot);
+          if (slot.available) {
+            btn.onclick = () => goToForm(slot);
+          } else {
+            btn.disabled = true;
+          }
           grid.appendChild(btn);
         });
 
