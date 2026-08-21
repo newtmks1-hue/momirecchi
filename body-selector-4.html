@@ -192,6 +192,111 @@
     font-size: 0.9rem;
   }
 
+  /* 同意書 */
+  .agreement-block {
+    margin-bottom: 20px;
+  }
+  .agreement-box {
+    height: 260px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1.5px solid #d8d0c4;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: #4a453e;
+    -webkit-overflow-scrolling: touch;
+  }
+  .agreement-box h4 {
+    font-size: 0.88rem;
+    color: #3a6a4a;
+    margin: 14px 0 6px;
+  }
+  .agreement-box h4:first-child { margin-top: 0; }
+  .agreement-box p {
+    margin-bottom: 8px;
+  }
+  .agreement-box .ag-divider {
+    border: none;
+    border-top: 1px dashed #d8d0c4;
+    margin: 14px 0;
+  }
+  .agreement-scroll-hint {
+    text-align: center;
+    font-size: 0.72rem;
+    color: #aaa;
+    margin-top: 6px;
+  }
+  .agreement-check-list {
+    margin-top: 14px;
+  }
+  .agreement-check-item {
+    position: relative;
+    margin-bottom: 10px;
+  }
+  .agreement-check-item input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0; height: 0;
+  }
+  .agreement-check-item label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 2px solid #d8d0c4;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #5a5048;
+    cursor: pointer;
+    line-height: 1.5;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .agreement-check-item label::before {
+    content: '';
+    width: 20px; height: 20px;
+    border: 2px solid #c0b8b0;
+    border-radius: 4px;
+    background: #fff;
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .agreement-check-item input:checked + label {
+    border-color: #5a8a6a;
+    background: #eef6f0;
+    color: #2a5a3a;
+  }
+  .agreement-check-item input:checked + label::before {
+    background: #5a8a6a;
+    border-color: #5a8a6a;
+    content: '✓';
+    color: white;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+  }
+  .agreement-check-item input:disabled + label {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .btn-submit:disabled {
+    background: #c8c0b4;
+    cursor: not-allowed;
+  }
+  .btn-submit:disabled:active {
+    background: #c8c0b4;
+  }
+
   /* 初回/リピートトグル */
   .toggle-group {
     display: flex;
@@ -652,7 +757,52 @@
     </div>
   </div>
 
-  <button class="btn-submit" onclick="submitForm()">📨 この内容で予約する</button>
+  <div class="agreement-block">
+    <div class="section-title" style="font-size:0.9rem;">📄 施術同意書・確認書</div>
+    <div class="agreement-box" id="agreement-box">
+      <p><strong>リーフ 〜Re:af〜 施術同意書・確認書</strong></p>
+      <p>当サロンでは、お客様に安全かつ快適に施術を受けていただくため、事前に以下の内容をご確認・ご理解いただき、ご承諾をお願いしております。</p>
+
+      <h4>1. 施術内容および目的の確認</h4>
+      <p>・当サロンの施術（揉みほぐし・ストレッチ等）は、心身のリフレッシュおよびコンディショニングを目的としたものであり、医療行為（診断・治療等）ではありません。</p>
+      <p>・施術後、血行促進や身体の変化に伴い、一時的な揉み返し・だるさ・軽度の違和感などが生じる場合があります。</p>
+
+      <h4>2. 施術を受けられない状態</h4>
+      <p>※以下の項目に該当する場合、安全上の理由から施術をお断り、または内容を変更・延期する場合があります。</p>
+      <p>・体調／疾患：発熱、強度の体調不良、感染症の疑い、飲酒後</p>
+      <p>・急性外傷：骨折、捻挫、打撲、ぎっくり腰などの急性の怪我・強い炎症や腫れ</p>
+      <p>・医療指示：医師から運動・ストレッチ・強い刺激等を禁止されている場合、手術直後</p>
+      <p>・その他：妊娠中またはその可能性がある場合（※事前相談がない場合）</p>
+
+      <h4>3. お身体の状態・既往歴の申告</h4>
+      <p>・現在治療中の病気、過去の大病・手術歴、服薬状況、ケガ・痛み・しびれ等がある場合は、必ず事前に施術者へお申し出ください。</p>
+      <p><strong>【重要】施術中に痛み・しびれ・気分不良・刺激の強弱など、異常や不快感を感じた場合は、直ちに施術者へお申し出ください。</strong></p>
+
+      <h4>4. 免責事項・個人情報の取り扱い</h4>
+      <p>・ご自身の申告漏れや虚偽の申告があった場合、または施術後の不適切な行動（過度な運動・飲酒等）による体調不良等について、当サロンは一切の責任を負いかねます。</p>
+      <p>・お荷物や貴重品の管理はご自身でお願いいたします。万が一の紛失・盗難・破損等につきましては責任を負いかねます。</p>
+      <p>・ご記入いただいた個人情報は、当サロンの施術管理および連絡以外の目的には使用いたしません。</p>
+
+      <hr class="ag-divider">
+
+      <p><strong>【同意欄】</strong></p>
+      <p>私は上記の説明・確認事項を十分に読み、内容を正しく理解した上で、自身の意思により「リーフ 〜Re:af〜」の施術を受けることに同意します。</p>
+    </div>
+    <div class="agreement-scroll-hint" id="agreement-scroll-hint">🌿 内容をご確認いただくため、最後までスクロールしてください</div>
+
+    <div class="agreement-check-list">
+      <div class="agreement-check-item">
+        <input type="checkbox" id="agree-check-1" onchange="updateAgreementState()" disabled>
+        <label for="agree-check-1">現在の身体状態について、正確に申告しました（虚偽・漏れはありません）。</label>
+      </div>
+      <div class="agreement-check-item">
+        <input type="checkbox" id="agree-check-2" onchange="updateAgreementState()" disabled>
+        <label for="agree-check-2">異常を感じた場合はすぐに申し出ることを確認しました。</label>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-submit" id="btn-submit" onclick="submitForm()" disabled>📨 この内容で予約する</button>
   <button class="btn-back" onclick="goBack(3)">← 戻る</button>
 </div>
 
@@ -774,6 +924,7 @@ function buildChecks(containerId, parts) {
 buildChecks('momi-checks', MOMI_PARTS);
 buildChecks('stretch-checks', STRETCH_PARTS);
 buildChecks('both-checks', BOTH_PARTS);
+setupAgreementScroll();
 const hasValidSlot = initBookingSlotFromURL();
 
 // =====================
@@ -904,6 +1055,19 @@ function getChecked(containerId) {
 }
 
 function buildConfirm() {
+  // 同意書の状態をリセット(何度でも最後まで読み直してもらうため)
+  agreementScrolled = false;
+  const c1 = document.getElementById('agree-check-1');
+  const c2 = document.getElementById('agree-check-2');
+  c1.checked = false;
+  c2.checked = false;
+  c1.disabled = true;
+  c2.disabled = true;
+  document.getElementById('agreement-box').scrollTop = 0;
+  document.getElementById('agreement-scroll-hint').textContent = '🌿 内容をご確認いただくため、最後までスクロールしてください';
+  document.getElementById('agreement-scroll-hint').style.color = '#aaa';
+  document.getElementById('btn-submit').disabled = true;
+
   document.getElementById('cf-name').textContent     = document.getElementById('inp-name').value;
   document.getElementById('cf-phone').textContent    = document.getElementById('inp-phone').value;
   document.getElementById('cf-datetime').textContent = formatBookingDateTime(bookingSlot.start) + '（' + bookingSlot.duration + '分コース）';
@@ -954,6 +1118,32 @@ function buildConfirm() {
 // =====================
 function goBack(to) {
   showStep(to);
+}
+
+// =====================
+// 同意書:最後までスクロールしたらチェック解放
+// =====================
+let agreementScrolled = false;
+
+function setupAgreementScroll() {
+  const box = document.getElementById('agreement-box');
+  box.addEventListener('scroll', () => {
+    if (agreementScrolled) return;
+    const reachedBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 6;
+    if (reachedBottom) {
+      agreementScrolled = true;
+      document.getElementById('agree-check-1').disabled = false;
+      document.getElementById('agree-check-2').disabled = false;
+      document.getElementById('agreement-scroll-hint').textContent = '✓ 最後までご確認いただきました';
+      document.getElementById('agreement-scroll-hint').style.color = '#5a8a6a';
+    }
+  });
+}
+
+function updateAgreementState() {
+  const c1 = document.getElementById('agree-check-1').checked;
+  const c2 = document.getElementById('agree-check-2').checked;
+  document.getElementById('btn-submit').disabled = !(c1 && c2);
 }
 
 // =====================
