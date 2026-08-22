@@ -254,6 +254,16 @@ function showSection(id) {
   window.scrollTo(0, 0);
 }
 
+// 全角英数字・全角スペースを半角に変換し、前後の空白を除去する
+function normalizeInput(str) {
+  if (!str) return '';
+  return str
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0)) // 全角英数字→半角
+    .replace(/　/g, ' ') // 全角スペース→半角スペース
+    .trim()
+    .replace(/\s+/g, ''); // 予約番号・電話番号内の余分なスペースを除去
+}
+
 function submitCancel() {
   let ok = true;
 
@@ -261,8 +271,8 @@ function submitCancel() {
   const phoneEl = document.getElementById('fg-phone');
   [idEl, phoneEl].forEach(el => el.classList.remove('has-error'));
 
-  const bookingId = document.getElementById('inp-bookingid').value.trim();
-  const phone = document.getElementById('inp-phone').value.trim();
+  const bookingId = normalizeInput(document.getElementById('inp-bookingid').value).toUpperCase();
+  const phone = normalizeInput(document.getElementById('inp-phone').value);
 
   if (!bookingId) { idEl.classList.add('has-error'); ok = false; }
   if (!phone) { phoneEl.classList.add('has-error'); ok = false; }
