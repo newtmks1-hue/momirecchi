@@ -131,6 +131,7 @@
     color: #3a6a4a;
     cursor: pointer;
     text-align: center;
+    text-decoration: none;
     transition: all 0.15s;
     box-sizing: border-box;
     -webkit-appearance: none;
@@ -154,6 +155,7 @@
     text-decoration-thickness: 2px;
     cursor: not-allowed;
     opacity: 1;
+    pointer-events: none;
   }
   .slot-btn.unavailable::after {
     content: '予約済み';
@@ -292,19 +294,20 @@ function loadSlots() {
 
         group.items.forEach(slot => {
           const start = new Date(slot.start);
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = slot.available ? 'slot-btn' : 'slot-btn unavailable';
-          btn.textContent = formatTime(start);
+
           if (slot.available) {
-            // LINE内蔵ブラウザ対応: onclickプロパティではなくaddEventListenerを使用
-            btn.addEventListener('click', function () {
-              goToForm(slot);
-            });
+            // LINE内蔵ブラウザ対応: JSのclickイベントに頼らず、本物のaタグ(href)で遷移させる
+            const link = document.createElement('a');
+            link.className = 'slot-btn';
+            link.textContent = formatTime(start);
+            link.href = buildFormUrl(slot);
+            grid.appendChild(link);
           } else {
-            btn.disabled = true;
+            const span = document.createElement('span');
+            span.className = 'slot-btn unavailable';
+            span.textContent = formatTime(start);
+            grid.appendChild(span);
           }
-          grid.appendChild(btn);
         });
 
         dateBlock.appendChild(grid);
@@ -316,7 +319,7 @@ function loadSlots() {
     });
 }
 
-function goToForm(slot) {
+function buildFormUrl(slot) {
   const price = priceMap[currentDuration + '分'] || '';
   const params = new URLSearchParams({
     slotId: slot.slotId,
@@ -326,7 +329,7 @@ function goToForm(slot) {
     price: price,
     start: slot.start
   });
-  window.location.href = FORM_URL + '?' + params.toString();
+  return FORM_URL + '?' + params.toString();
 }
 
 // 初期化
