@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Re:af｜ご予約のキャンセル</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Hiragino Kaku Gothic ProN', 'ヒラギノ角ゴ ProN', Meiryo, sans-serif;
+    background: #f8f5f0;
+    color: #3a3028;
+    min-height: 100vh;
+  }
+
+  header {
+    background: #5a8a6a;
+    color: white;
+    text-align: center;
+    padding: 18px 16px 14px;
+  }
+  header h1 {
+    font-size: 1.25rem;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+  }
+  header p {
+    font-size: 0.75rem;
+    margin-top: 4px;
+    opacity: 0.85;
+  }
+
+  .wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 24px 16px 40px;
+  }
+
+  .section {
+    display: none;
+    animation: fadeIn 0.25s ease;
+  }
+  .section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .notice {
+    background: #f0f7f2;
+    border-left: 4px solid #5a8a6a;
+    border-radius: 4px;
+    padding: 12px 14px;
+    font-size: 0.8rem;
+    color: #4a6a50;
+    line-height: 1.7;
+    margin-bottom: 22px;
+  }
+  .notice strong { color: #3a5a40; }
+
+  .form-group {
+    margin-bottom: 18px;
+  }
+  .form-group label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #5a6a50;
+    margin-bottom: 6px;
+  }
+  .form-group label .required {
+    color: #c05050;
+    font-size: 0.7rem;
+    margin-left: 4px;
+  }
+  .form-group input {
+    width: 100%;
+    padding: 13px 14px;
+    border: 1.5px solid #d8d0c4;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: #fff;
+    color: #3a3028;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: inherit;
+  }
+  .form-group input:focus { border-color: #5a8a6a; }
+  .form-group .hint {
+    font-size: 0.72rem;
+    color: #999;
+    margin-top: 5px;
+  }
+
+  .error-msg {
+    color: #c05050;
+    font-size: 0.75rem;
+    margin-top: 4px;
+    display: none;
+  }
+  .has-error input { border-color: #c05050; }
+  .has-error .error-msg { display: block; }
+
+  .btn-submit {
+    width: 100%;
+    padding: 16px;
+    background: #c05050;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: background 0.2s, transform 0.1s;
+    margin-top: 4px;
+    touch-action: manipulation;
+  }
+  .btn-submit:active { background: #a03a3a; transform: scale(0.98); }
+  .btn-submit:disabled {
+    background: #d8b0b0;
+    cursor: not-allowed;
+  }
+
+  .btn-back-link {
+    display: block;
+    text-align: center;
+    margin-top: 18px;
+    font-size: 0.8rem;
+    color: #7a9a80;
+    text-decoration: underline;
+  }
+
+  /* 結果画面共通 */
+  .result {
+    text-align: center;
+    padding: 30px 16px;
+  }
+  .result .icon-big { font-size: 3.2rem; margin-bottom: 14px; }
+  .result h2 { font-size: 1.15rem; margin-bottom: 10px; }
+  .result p { font-size: 0.85rem; color: #666; line-height: 1.7; }
+
+  .result.success h2 { color: #5a8a6a; }
+  .result.error h2 { color: #c05050; }
+
+  .result-detail {
+    background: #fff;
+    border: 1.5px solid #e0d8cc;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 18px 0;
+    text-align: left;
+  }
+  .result-detail .rd-row {
+    display: flex;
+    gap: 10px;
+    font-size: 0.82rem;
+    padding: 4px 0;
+  }
+  .result-detail .rd-row .key {
+    color: #888;
+    min-width: 70px;
+    flex-shrink: 0;
+  }
+  .result-detail .rd-row .val {
+    color: #3a3028;
+    font-weight: 600;
+  }
+
+  .btn-retry {
+    width: 100%;
+    padding: 14px;
+    background: transparent;
+    color: #7a9a80;
+    border: 2px solid #c0d8c8;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 16px;
+  }
+  .btn-retry:active { background: #f0f7f2; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌿 Re:af｜ご予約のキャンセル</h1>
+  <p>予約番号と電話番号をご入力ください</p>
+</header>
+
+<div class="wrap">
+
+  <!-- ① 入力画面 -->
+  <div class="section active" id="sec-form">
+    <div class="notice">
+      🌿 <strong>予約番号</strong>は、ご予約完了時の画面に表示された英数字です。<br>
+      わからない場合は、お手数ですがサロンまで直接ご連絡ください。
+    </div>
+
+    <div class="form-group" id="fg-bookingid">
+      <label>予約番号<span class="required">※必須</span></label>
+      <input type="text" id="inp-bookingid" placeholder="例：MR260822123045" autocapitalize="characters">
+      <div class="error-msg">予約番号を入力してください</div>
+    </div>
+
+    <div class="form-group" id="fg-phone">
+      <label>電話番号<span class="required">※必須</span></label>
+      <input type="tel" id="inp-phone" placeholder="例：090-0000-0000" inputmode="tel">
+      <div class="hint">ご予約時にご入力いただいた電話番号です</div>
+      <div class="error-msg">電話番号を入力してください</div>
+    </div>
+
+    <button class="btn-submit" id="btn-submit" onclick="submitCancel()">この予約をキャンセルする</button>
+    <a class="btn-back-link" href="kuuki-v2.html">← 空き状況ページに戻る</a>
+  </div>
+
+  <!-- ② 成功画面 -->
+  <div class="section" id="sec-success">
+    <div class="result success">
+      <div class="icon-big">✅</div>
+      <h2>キャンセルが完了しました</h2>
+      <p>ご予約のキャンセルを承りました。<br>またのご利用をお待ちしております。</p>
+
+      <div class="result-detail">
+        <div class="rd-row"><span class="key">予約番号</span><span class="val" id="res-bookingid">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ エラー画面 -->
+  <div class="section" id="sec-error">
+    <div class="result error">
+      <div class="icon-big">⚠️</div>
+      <h2>キャンセルできませんでした</h2>
+      <p id="error-message">予約番号または電話番号をご確認のうえ、もう一度お試しください。</p>
+      <button class="btn-retry" onclick="showSection('sec-form')">もう一度入力する</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const GAS_URL = 'https://script.google.com/macros/s/AKfycby5-IVBqgwikKLaeZJs4kK2jXq9OyQ6NRAfumNn0fDSfH9L8FwQ0mvEUQJdyORQp_ov/exec';
+
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function submitCancel() {
+  let ok = true;
+
+  const idEl = document.getElementById('fg-bookingid');
+  const phoneEl = document.getElementById('fg-phone');
+  [idEl, phoneEl].forEach(el => el.classList.remove('has-error'));
+
+  const bookingId = document.getElementById('inp-bookingid').value.trim();
+  const phone = document.getElementById('inp-phone').value.trim();
+
+  if (!bookingId) { idEl.classList.add('has-error'); ok = false; }
+  if (!phone) { phoneEl.classList.add('has-error'); ok = false; }
+
+  if (!ok) return;
+
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  btn.textContent = '処理中…';
+
+  fetch(GAS_URL, {
+    method: 'POST',
+    body: JSON.stringify({
+      action: 'cancelBooking',
+      bookingId: bookingId,
+      phone: phone
+    })
+  })
+  .then(r => r.json())
+  .then(res => {
+    btn.disabled = false;
+    btn.textContent = 'この予約をキャンセルする';
+
+    if (res.success) {
+      document.getElementById('res-bookingid').textContent = bookingId;
+      showSection('sec-success');
+    } else {
+      document.getElementById('error-message').textContent =
+        res.message || '予約番号または電話番号をご確認のうえ、もう一度お試しください。';
+      showSection('sec-error');
+    }
+  })
+  .catch(() => {
+    btn.disabled = false;
+    btn.textContent = 'この予約をキャンセルする';
+    document.getElementById('error-message').textContent =
+      '通信エラーが発生しました。もう一度お試しください。';
+    showSection('sec-error');
+  });
+}
+</script>
+</body>
+</html>
