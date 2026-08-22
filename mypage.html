@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Re:af｜ご予約の確認・キャンセル</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Hiragino Kaku Gothic ProN', 'ヒラギノ角ゴ ProN', Meiryo, sans-serif;
+    background: #f8f5f0;
+    color: #3a3028;
+    min-height: 100vh;
+  }
+
+  header {
+    background: #5a8a6a;
+    color: white;
+    text-align: center;
+    padding: 18px 16px 14px;
+  }
+  header h1 {
+    font-size: 1.2rem;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+  }
+  header p {
+    font-size: 0.75rem;
+    margin-top: 4px;
+    opacity: 0.85;
+  }
+
+  .wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 22px 16px 40px;
+  }
+
+  .section { display: none; animation: fadeIn 0.25s ease; }
+  .section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .notice {
+    background: #f0f7f2;
+    border-left: 4px solid #5a8a6a;
+    border-radius: 4px;
+    padding: 12px 14px;
+    font-size: 0.8rem;
+    color: #4a6a50;
+    line-height: 1.7;
+    margin-bottom: 22px;
+  }
+
+  .form-group { margin-bottom: 16px; }
+  .form-group label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #5a6a50;
+    margin-bottom: 6px;
+  }
+  .form-group label .required {
+    color: #c05050;
+    font-size: 0.7rem;
+    margin-left: 4px;
+  }
+  .form-group input {
+    width: 100%;
+    padding: 13px 14px;
+    border: 1.5px solid #d8d0c4;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: #fff;
+    color: #3a3028;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: inherit;
+  }
+  .form-group input:focus { border-color: #5a8a6a; }
+
+  .error-msg {
+    color: #c05050;
+    font-size: 0.75rem;
+    margin-top: 4px;
+    display: none;
+  }
+  .has-error input { border-color: #c05050; }
+  .has-error .error-msg { display: block; }
+
+  .btn-primary {
+    width: 100%;
+    padding: 16px;
+    background: #5a8a6a;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: background 0.2s, transform 0.1s;
+    touch-action: manipulation;
+  }
+  .btn-primary:active { background: #3a6a4a; transform: scale(0.98); }
+  .btn-primary:disabled { background: #c8c0b4; cursor: not-allowed; }
+
+  .btn-back-link {
+    display: block;
+    text-align: center;
+    margin-top: 18px;
+    font-size: 0.8rem;
+    color: #7a9a80;
+    text-decoration: underline;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 40px 0;
+    color: #999;
+    font-size: 0.85rem;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 40px 16px;
+    color: #999;
+    font-size: 0.85rem;
+    line-height: 1.7;
+  }
+
+  /* 予約カード */
+  .booking-card {
+    background: #fff;
+    border: 1.5px solid #e0d8cc;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .booking-card .bc-id {
+    font-size: 0.7rem;
+    color: #999;
+    font-family: 'Courier New', monospace;
+    margin-bottom: 6px;
+  }
+  .booking-card .bc-datetime {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #2a5a3a;
+    margin-bottom: 6px;
+  }
+  .booking-card .bc-row {
+    font-size: 0.82rem;
+    color: #5a5048;
+    margin-bottom: 3px;
+  }
+  .booking-card .bc-row .key { color: #999; margin-right: 6px; }
+  .booking-card .bc-cancel {
+    width: 100%;
+    margin-top: 12px;
+    padding: 11px;
+    background: transparent;
+    color: #c05050;
+    border: 2px solid #e0b8b8;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    touch-action: manipulation;
+  }
+  .booking-card .bc-cancel:active { background: #fbeaea; }
+  .booking-card .bc-cancel:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .booking-card.cancelled {
+    opacity: 0.55;
+  }
+  .booking-card .bc-cancelled-label {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 0.8rem;
+    color: #999;
+    font-weight: 700;
+  }
+
+  .result-list-title {
+    font-size: 0.82rem;
+    color: #5a6a50;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌿 Re:af｜ご予約の確認</h1>
+  <p>電話番号でご予約内容をご確認いただけます</p>
+</header>
+
+<div class="wrap">
+
+  <!-- ① 電話番号入力 -->
+  <div class="section active" id="sec-phone">
+    <div class="notice">
+      🌿 ご予約時にご入力いただいた電話番号を入力すると、<br>
+      今後のご予約内容を確認できます。<br>
+      キャンセルもこちらから行えます。
+    </div>
+
+    <div class="form-group" id="fg-phone">
+      <label>電話番号<span class="required">※必須</span></label>
+      <input type="tel" id="inp-phone" placeholder="例：090-0000-0000" inputmode="tel">
+      <div class="error-msg">電話番号を入力してください</div>
+    </div>
+
+    <button class="btn-primary" id="btn-lookup" onclick="lookupBookings()">予約内容を確認する</button>
+    <a class="btn-back-link" href="kuuki-v2.html">← 空き状況ページに戻る</a>
+  </div>
+
+  <!-- ② 一覧表示 -->
+  <div class="section" id="sec-list">
+    <div class="result-list-title" id="list-title">ご予約内容</div>
+    <div id="bookings-area"></div>
+    <button class="btn-primary" style="background:transparent;color:#7a9a80;border:2px solid #c0d8c8;" onclick="showSection('sec-phone')">← 別の電話番号で確認する</button>
+  </div>
+
+</div>
+
+<script>
+const GAS_URL = 'https://script.google.com/macros/s/AKfycby5-IVBqgwikKLaeZJs4kK2jXq9OyQ6NRAfumNn0fDSfH9L8FwQ0mvEUQJdyORQp_ov/exec';
+
+const WEEKDAY_JA = ['日','月','火','水','木','金','土'];
+
+function normalizeInput(str) {
+  if (!str) return '';
+  return str
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
+    .replace(/　/g, ' ')
+    .trim()
+    .replace(/\s+/g, '');
+}
+
+function formatDateTime(iso) {
+  const d = new Date(iso);
+  const m = d.getMonth() + 1;
+  const day = d.getDate();
+  const dow = WEEKDAY_JA[d.getDay()];
+  const h = String(d.getHours()).padStart(2,'0');
+  const mi = String(d.getMinutes()).padStart(2,'0');
+  return `${m}月${day}日（${dow}） ${h}:${mi}〜`;
+}
+
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+let currentPhone = '';
+
+function lookupBookings() {
+  const phoneEl = document.getElementById('fg-phone');
+  phoneEl.classList.remove('has-error');
+
+  const phone = normalizeInput(document.getElementById('inp-phone').value);
+  if (!phone) {
+    phoneEl.classList.add('has-error');
+    return;
+  }
+  currentPhone = phone;
+
+  const btn = document.getElementById('btn-lookup');
+  btn.disabled = true;
+  btn.textContent = '確認中…';
+
+  fetch(GAS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'getBookings', phone: phone })
+  })
+  .then(r => r.json())
+  .then(res => {
+    btn.disabled = false;
+    btn.textContent = '予約内容を確認する';
+
+    if (!res.success) {
+      alert('通信エラーが発生しました。もう一度お試しください。');
+      return;
+    }
+    renderBookings(res.bookings || []);
+    showSection('sec-list');
+  })
+  .catch(() => {
+    btn.disabled = false;
+    btn.textContent = '予約内容を確認する';
+    alert('通信エラーが発生しました。もう一度お試しください。');
+  });
+}
+
+function renderBookings(bookings) {
+  const area = document.getElementById('bookings-area');
+  const title = document.getElementById('list-title');
+
+  if (bookings.length === 0) {
+    title.textContent = 'ご予約内容';
+    area.innerHTML = '<div class="empty">この電話番号でのご予約は見つかりませんでした。<br>入力内容をご確認ください。</div>';
+    return;
+  }
+
+  title.textContent = `今後のご予約（${bookings.length}件）`;
+  area.innerHTML = '';
+
+  bookings.forEach(b => {
+    const card = document.createElement('div');
+    card.className = 'booking-card';
+    card.id = 'card-' + b.bookingId;
+
+    const nominationTag = b.nominationLabel ? `（${b.nominationLabel}）` : '';
+
+    card.innerHTML = `
+      <div class="bc-id">予約番号：${escapeHtml(b.bookingId)}</div>
+      <div class="bc-datetime">${formatDateTime(b.start)}</div>
+      <div class="bc-row"><span class="key">コース</span>${escapeHtml(b.course || '')}</div>
+      <div class="bc-row"><span class="key">担当</span>${escapeHtml(b.staffName || '')}${nominationTag}</div>
+      <div class="bc-row"><span class="key">料金</span>¥${Number(b.price || 0).toLocaleString()}</div>
+      <button class="bc-cancel" onclick="cancelOne('${escapeJs(b.bookingId)}')">この予約をキャンセルする</button>
+    `;
+    area.appendChild(card);
+  });
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+function escapeJs(str) {
+  return String(str).replace(/'/g, "\\'");
+}
+
+function cancelOne(bookingId) {
+  if (!confirm('この予約をキャンセルします。よろしいですか？')) return;
+
+  const card = document.getElementById('card-' + bookingId);
+  const btn = card.querySelector('.bc-cancel');
+  btn.disabled = true;
+  btn.textContent = '処理中…';
+
+  fetch(GAS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'cancelBooking', bookingId: bookingId, phone: currentPhone })
+  })
+  .then(r => r.json())
+  .then(res => {
+    if (res.success) {
+      card.classList.add('cancelled');
+      btn.remove();
+      const label = document.createElement('div');
+      label.className = 'bc-cancelled-label';
+      label.textContent = '✓ キャンセル済み';
+      card.appendChild(label);
+    } else {
+      alert(res.message || 'キャンセルに失敗しました。時間をおいて再度お試しください。');
+      btn.disabled = false;
+      btn.textContent = 'この予約をキャンセルする';
+    }
+  })
+  .catch(() => {
+    alert('通信エラーが発生しました。もう一度お試しください。');
+    btn.disabled = false;
+    btn.textContent = 'この予約をキャンセルする';
+  });
+}
+</script>
+</body>
+</html>
