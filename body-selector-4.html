@@ -561,6 +561,59 @@
   .complete h2 { font-size: 1.2rem; color: #5a8a6a; margin-bottom: 10px; }
   .complete p { font-size: 0.85rem; color: #666; line-height: 1.7; }
 
+  /* 予約番号カード */
+  .booking-id-card {
+    background: #eef6f0;
+    border: 1.5px solid #c8e0d0;
+    border-radius: 12px;
+    padding: 18px 16px;
+    margin: 20px 0;
+    text-align: center;
+  }
+  .booking-id-card .bic-label {
+    font-size: 0.72rem;
+    color: #5a8a6a;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .booking-id-card .bic-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2a5a3a;
+    letter-spacing: 0.05em;
+    font-family: 'Courier New', monospace;
+  }
+  .booking-id-card .bic-note {
+    font-size: 0.72rem;
+    color: #7a9a80;
+    margin-top: 8px;
+    line-height: 1.6;
+  }
+  .complete-detail {
+    background: #fff;
+    border: 1.5px solid #e0d8cc;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 4px;
+    text-align: left;
+  }
+  .complete-detail .cd-row {
+    display: flex;
+    gap: 10px;
+    font-size: 0.82rem;
+    padding: 4px 0;
+  }
+  .complete-detail .cd-row .key {
+    color: #888;
+    min-width: 70px;
+    flex-shrink: 0;
+  }
+  .complete-detail .cd-row .val {
+    color: #3a3028;
+    font-weight: 600;
+  }
+
   .hidden { display: none !important; }
 
   /* エラー */
@@ -816,6 +869,22 @@
       確認のご連絡をさせていただきますので、<br>
       しばらくお待ちください。
     </p>
+
+    <div class="booking-id-card">
+      <div class="bic-label">予約番号</div>
+      <div class="bic-number" id="complete-booking-id">—</div>
+      <div class="bic-note">
+        キャンセル・お問い合わせの際に必要となります。<br>
+        このページのスクリーンショットを保存するか、<br>
+        メモしておくことをおすすめします。
+      </div>
+    </div>
+
+    <div class="complete-detail">
+      <div class="cd-row"><span class="key">お名前</span><span class="val" id="complete-name">—</span></div>
+      <div class="cd-row"><span class="key">ご予約日時</span><span class="val" id="complete-datetime">—</span></div>
+      <div class="cd-row"><span class="key">コース</span><span class="val" id="complete-course">—</span></div>
+    </div>
   </div>
 </div>
 
@@ -1199,6 +1268,11 @@ function submitForm() {
   .then(r => r.json())
   .then(res => {
     if (res.success) {
+      // 完了画面に予約番号・詳細を表示
+      document.getElementById('complete-booking-id').textContent = res.bookingId || '—';
+      document.getElementById('complete-name').textContent = document.getElementById('inp-name').value;
+      document.getElementById('complete-datetime').textContent = formatBookingDateTime(bookingSlot.start);
+      document.getElementById('complete-course').textContent = (courseLabels[course] || '') + '（' + bookingSlot.duration + '分）';
       showStep(5);
     } else {
       alert(res.message || 'この時間はすでに予約が埋まってしまった可能性があります。お手数ですが日時を選び直してください。');
