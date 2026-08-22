@@ -55,6 +55,8 @@
     cursor: pointer;
     text-align: center;
     transition: all 0.2s;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(90,138,106,0.2);
   }
   .duration-tab .price {
     display: block;
@@ -135,6 +137,10 @@
     appearance: none;
     opacity: 1;
     font-family: inherit;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(90,138,106,0.25);
+    user-select: none;
+    -webkit-user-select: none;
   }
   .slot-btn:active {
     background: #eef6f0;
@@ -180,9 +186,9 @@
 
 <div class="wrap">
   <div class="duration-tabs" id="duration-tabs">
-    <button class="duration-tab" data-duration="60" onclick="selectDuration(60)">60分<span class="price" id="price-60">—</span></button>
-    <button class="duration-tab" data-duration="90" onclick="selectDuration(90)">90分<span class="price" id="price-90">—</span></button>
-    <button class="duration-tab" data-duration="120" onclick="selectDuration(120)">120分<span class="price" id="price-120">—</span></button>
+    <button type="button" class="duration-tab" data-duration="60">60分<span class="price" id="price-60">—</span></button>
+    <button type="button" class="duration-tab" data-duration="90">90分<span class="price" id="price-90">—</span></button>
+    <button type="button" class="duration-tab" data-duration="120">120分<span class="price" id="price-120">—</span></button>
   </div>
 
   <div class="notice">
@@ -227,6 +233,13 @@ function selectDuration(min) {
   });
   loadSlots();
 }
+
+// コース時間タブのイベント登録(addEventListenerに統一)
+document.querySelectorAll('.duration-tab').forEach(btn => {
+  btn.addEventListener('click', function () {
+    selectDuration(Number(btn.dataset.duration));
+  });
+});
 
 function formatDateHeading(dateObj) {
   const m = dateObj.getMonth() + 1;
@@ -280,10 +293,14 @@ function loadSlots() {
         group.items.forEach(slot => {
           const start = new Date(slot.start);
           const btn = document.createElement('button');
+          btn.type = 'button';
           btn.className = slot.available ? 'slot-btn' : 'slot-btn unavailable';
           btn.textContent = formatTime(start);
           if (slot.available) {
-            btn.onclick = () => goToForm(slot);
+            // LINE内蔵ブラウザ対応: onclickプロパティではなくaddEventListenerを使用
+            btn.addEventListener('click', function () {
+              goToForm(slot);
+            });
           } else {
             btn.disabled = true;
           }
