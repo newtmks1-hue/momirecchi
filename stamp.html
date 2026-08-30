@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Re:af スタンプカード</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
+    background: #f7f5f2;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+  .logo {
+    font-size: 22px;
+    font-weight: bold;
+    color: #4a7c59;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: #999;
+    margin-bottom: 24px;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    padding: 28px 24px;
+    max-width: 420px;
+    width: 100%;
+  }
+
+  label {
+    font-size: 14px;
+    color: #666;
+    display: block;
+    margin-bottom: 8px;
+  }
+  input[type="tel"] {
+    width: 100%;
+    font-size: 18px;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+  button {
+    width: 100%;
+    background: #b08968;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  button:active { opacity: 0.7; }
+
+  #errorMsg {
+    color: #e8735c;
+    font-size: 13px;
+    margin-top: 8px;
+    min-height: 16px;
+  }
+
+  #resultArea { margin-top: 28px; text-align: center; display: none; }
+  .pointBig {
+    font-size: 48px;
+    font-weight: bold;
+    color: #4a7c59;
+  }
+  .pointUnit { font-size: 18px; color: #999; margin-left: 4px; }
+
+  .stampGrid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin: 20px 0;
+  }
+  .stamp {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 2px solid #d8cfc2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+  .stamp.filled {
+    background: #4a7c59;
+    border-color: #4a7c59;
+    color: #fff;
+  }
+
+  .rewardMsg {
+    font-size: 15px;
+    color: #555;
+    line-height: 1.6;
+  }
+  .rewardMsg.reached {
+    color: #b08968;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+
+  <div class="logo">🌿 Re:af</div>
+  <div class="subtitle">電子スタンプカード</div>
+
+  <div class="card">
+    <label for="phoneInput">ご予約時の電話番号を入力してください</label>
+    <input type="tel" id="phoneInput" placeholder="09012345678" inputmode="numeric">
+    <button onclick="checkStamp()">ポイントを確認する</button>
+    <div id="errorMsg"></div>
+  </div>
+
+  <div id="resultArea">
+    <div class="pointBig"><span id="pointValue">0</span><span class="pointUnit">/ <span id="goalValue">10</span> pt</span></div>
+    <div class="stampGrid" id="stampGrid"></div>
+    <div class="rewardMsg" id="rewardMsg"></div>
+  </div>
+
+<script>
+// GASデプロイ後、発行されたWebApp URLをここに設定してください
+const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxH3In5UBIdY7bDQ9_m5tNlH19w4XFPJUTpq3opqQW9i8HyYK4Hc7hIlZ84zlExnpnZ/exec';
+
+async function checkStamp() {
+  const phone = document.getElementById('phoneInput').value.trim();
+  const errorMsg = document.getElementById('errorMsg');
+  const resultArea = document.getElementById('resultArea');
+  errorMsg.textContent = '';
+  resultArea.style.display = 'none';
+
+  if (!phone) {
+    errorMsg.textContent = '電話番号を入力してください';
+    return;
+  }
+  if (!WEBAPP_URL || WEBAPP_URL.indexOf('ここに') !== -1) {
+    errorMsg.textContent = '設定が未完了です(WEBAPP_URL未設定)';
+    return;
+  }
+
+  try {
+    const res = await fetch(WEBAPP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'getStamp', phone: phone }),
+    });
+    const data = await res.json();
+
+    if (!data.success) {
+      errorMsg.textContent = data.error || '確認できませんでした';
+      return;
+    }
+
+    renderResult(data.points, data.goal, data.rewardText, data.reached);
+  } catch (e) {
+    errorMsg.textContent = '通信エラーが発生しました';
+  }
+}
+
+function renderResult(points, goal, rewardText, reached) {
+  document.getElementById('pointValue').textContent = points;
+  document.getElementById('goalValue').textContent = goal;
+
+  const grid = document.getElementById('stampGrid');
+  grid.innerHTML = '';
+  for (let i = 1; i <= goal; i++) {
+    const div = document.createElement('div');
+    div.className = 'stamp' + (i <= points ? ' filled' : '');
+    div.textContent = i <= points ? '🌿' : '';
+    grid.appendChild(div);
+  }
+
+  const rewardMsg = document.getElementById('rewardMsg');
+  if (reached) {
+    rewardMsg.textContent = `🎉 ${goal}ポイント達成！次回のご来店時に「${rewardText}」をご利用いただけます。スタッフにお声がけください。`;
+    rewardMsg.classList.add('reached');
+  } else {
+    const remain = goal - points;
+    rewardMsg.textContent = `あと${remain}回のご来店で「${rewardText}」の特典があります。`;
+    rewardMsg.classList.remove('reached');
+  }
+
+  document.getElementById('resultArea').style.display = 'block';
+}
+</script>
+</body>
+</html>
