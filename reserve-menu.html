@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Re:af ご予約</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
+    background: #f7f5f2;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  .logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #4a7c59;
+    margin-bottom: 32px;
+  }
+  .menuList {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .menuItem {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    padding: 22px 24px;
+    text-decoration: none;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .menuItem:active { opacity: 0.7; }
+  .menuIcon { font-size: 30px; flex-shrink: 0; }
+  .menuText { flex: 1; }
+  .menuTitle { font-size: 17px; font-weight: bold; margin-bottom: 4px; }
+  .menuDesc { font-size: 13px; color: #888; }
+  .menuArrow { color: #ccc; font-size: 18px; }
+</style>
+</head>
+<body>
+
+  <div class="logo">🌿 Re:af</div>
+
+  <div class="menuList">
+    <a class="menuItem" href="./kuuki-v2.html">
+      <div class="menuIcon">📅</div>
+      <div class="menuText">
+        <div class="menuTitle">新しいご予約</div>
+        <div class="menuDesc">空き状況を確認してご予約</div>
+      </div>
+      <div class="menuArrow">›</div>
+    </a>
+
+    <a class="menuItem" href="./mypage.html">
+      <div class="menuIcon">🔍</div>
+      <div class="menuText">
+        <div class="menuTitle">ご予約の確認・キャンセル</div>
+        <div class="menuDesc">すでにご予約済みの方はこちら</div>
+      </div>
+      <div class="menuArrow">›</div>
+    </a>
+  </div>
+
+</body>
+</html>
