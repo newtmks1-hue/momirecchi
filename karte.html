@@ -118,13 +118,10 @@
     <div class="logo">🌿 Re:af カルテ</div>
 
     <div class="field">
-      <label>お名前</label>
-      <input type="text" id="nameInput" placeholder="山田 花子">
+      <label>お客様の電話番号</label>
+      <input type="tel" id="phoneInput" placeholder="09012345678" inputmode="numeric" onblur="autoLookupName()">
     </div>
-    <div class="field">
-      <label>生年月日</label>
-      <input type="date" id="birthdayInput">
-    </div>
+    <div id="nameDisplay" style="font-size:14px; color:#4a7c59; min-height:18px; margin-bottom:6px;"></div>
 
     <div style="font-size:13px; color:#888; margin:14px 0 4px;">WebApp URL(初回のみ設定)</div>
     <input type="text" id="webAppUrl" placeholder="https://script.google.com/macros/s/.../exec" value="https://script.google.com/macros/s/AKfycbxH3In5UBIdY7bDQ9_m5tNlH19w4XFPJUTpq3opqQW9i8HyYK4Hc7hIlZ84zlExnpnZ/exec"
@@ -174,14 +171,14 @@ const ACCESS_CODE = 'reaf2026';
 function checkLock() {
   const input = document.getElementById('lockInput').value;
   if (input === ACCESS_CODE) {
-    sessionStorage.setItem('karte_unlocked', '1');
+    localStorage.setItem('karte_unlocked', '1');
     document.getElementById('lockScreen').style.display = 'none';
   } else {
     document.getElementById('lockError').textContent = '合言葉が違います';
   }
 }
 
-if (sessionStorage.getItem('karte_unlocked') === '1') {
+if (localStorage.getItem('karte_unlocked') === '1') {
   document.getElementById('lockScreen').style.display = 'none';
 }
 
@@ -310,11 +307,36 @@ function clearCanvas() {
   }
 }
 
+async function autoLookupName() {
+  const phone = document.getElementById('phoneInput').value.trim();
+  const url = document.getElementById('webAppUrl').value.trim();
+  const nameDisplay = document.getElementById('nameDisplay');
+  nameDisplay.textContent = '';
+  if (!phone || !url) return;
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'lookupName', phone }),
+    });
+    const data = await res.json();
+    if (data.success && data.name) {
+      nameDisplay.textContent = '✓ ' + data.name + ' 様';
+      window.currentCustomerName = data.name;
+    } else {
+      nameDisplay.textContent = '(新規のお客様のようです)';
+      window.currentCustomerName = '';
+    }
+  } catch (e) {
+    // 自動検索は失敗しても致命的ではないので何もしない
+  }
+}
+
 function startNewKarte() {
-  const name = document.getElementById('nameInput').value.trim();
-  const birthday = document.getElementById('birthdayInput').value;
-  if (!name || !birthday) {
-    document.getElementById('searchError').textContent = 'お名前と生年月日を入力してください';
+  const phone = document.getElementById('phoneInput').value.trim();
+  if (!phone) {
+    document.getElementById('searchError').textContent = '電話番号を入力してください';
     return;
   }
   strokes = [];
@@ -339,16 +361,15 @@ window.addEventListener('resize', () => {
 });
 
 async function searchHistory() {
-  const name = document.getElementById('nameInput').value.trim();
-  const birthday = document.getElementById('birthdayInput').value;
+  const phone = document.getElementById('phoneInput').value.trim();
   const url = document.getElementById('webAppUrl').value.trim();
   const errorEl = document.getElementById('searchError');
   const listEl = document.getElementById('historyList');
   errorEl.textContent = '';
   listEl.innerHTML = '';
 
-  if (!name || !birthday) {
-    errorEl.textContent = 'お名前と生年月日を入力してください';
+  if (!phone) {
+    errorEl.textContent = '電話番号を入力してください';
     return;
   }
   if (!url) {
@@ -360,7 +381,7 @@ async function searchHistory() {
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action: 'getKarteHistory', name, birthday }),
+      body: JSON.stringify({ action: 'getKarteHistory', phone }),
     });
     const data = await res.json();
     if (!data.success) {
@@ -399,10 +420,10 @@ function closeViewer() {
 }
 
 async function saveKarte() {
-  const name = document.getElementById('nameInput').value.trim();
-  const birthday = document.getElementById('birthdayInput').value;
+  const phone = document.getElementById('phoneInput').value.trim();
   const memo = document.getElementById('memoInput').value.trim();
   const url = document.getElementById('webAppUrl').value.trim();
+  const name = window.currentCustomerName || '';
 
   if (!url) {
     alert('WebApp URLを設定してください');
@@ -415,7 +436,7 @@ async function saveKarte() {
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action: 'saveKarte', name, birthday, memo, imageBase64 }),
+      body: JSON.stringify({ action: 'saveKarte', phone, name, memo, imageBase64 }),
     });
     const data = await res.json();
     if (!data.success) {
