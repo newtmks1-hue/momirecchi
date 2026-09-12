@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Re:af カルテ</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
+    background: #f7f5f2;
+    color: #333;
+    overscroll-behavior: none;
+  }
+  .screen { display: none; min-height: 100%; }
+  .screen.active { display: block; }
+
+  /* ---- 検索画面 ---- */
+  #searchScreen { padding: 24px 20px; max-width: 480px; margin: 0 auto; }
+  .logo { font-size: 22px; font-weight: bold; color: #4a7c59; margin-bottom: 20px; text-align: center; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; color: #666; margin-bottom: 6px; }
+  .field input {
+    width: 100%; font-size: 17px; padding: 12px; border: 1px solid #ccc; border-radius: 10px;
+  }
+  .primaryBtn {
+    width: 100%; background: #b08968; color: #fff; border: none; border-radius: 10px;
+    padding: 14px; font-size: 16px; cursor: pointer; margin-top: 8px;
+  }
+  .primaryBtn:active { opacity: 0.7; }
+  .secondaryBtn {
+    width: 100%; background: #fff; color: #4a7c59; border: 2px solid #4a7c59; border-radius: 10px;
+    padding: 12px; font-size: 15px; cursor: pointer; margin-top: 10px;
+  }
+  #searchError { color: #e8735c; font-size: 13px; margin-top: 8px; min-height: 16px; }
+
+  .historyList { margin-top: 24px; }
+  .historyItem {
+    display: flex; gap: 12px; align-items: center; background: #fff; border-radius: 12px;
+    padding: 10px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); cursor: pointer;
+  }
+  .historyItem img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; background: #eee; }
+  .historyItem .meta { flex: 1; }
+  .historyItem .date { font-size: 14px; font-weight: bold; }
+  .historyItem .memo { font-size: 12px; color: #888; margin-top: 2px; }
+
+  /* ---- 描画画面 ---- */
+  #drawScreen { display: none; height: 100%; flex-direction: column; }
+  #drawScreen.active { display: flex; }
+  #toolbar {
+    display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+    background: #fff; border-bottom: 1px solid #eee; flex-wrap: wrap;
+  }
+  .colorBtn {
+    width: 34px; height: 34px; border-radius: 50%; border: 2px solid #fff;
+    box-shadow: 0 0 0 1px #ccc; cursor: pointer;
+  }
+  .colorBtn.selected { box-shadow: 0 0 0 3px #333; }
+  .toolBtn {
+    background: #f0eeea; border: none; border-radius: 8px; padding: 8px 14px;
+    font-size: 14px; cursor: pointer;
+  }
+  .toolBtn.selected { background: #4a7c59; color: #fff; }
+  .spacer { flex: 1; }
+  #canvasWrap {
+    flex: 1; overflow: hidden; position: relative; background: #ddd;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #drawCanvas { touch-action: none; background: #fff; max-width: 100%; max-height: 100%; }
+  #saveBar { padding: 12px; background: #fff; border-top: 1px solid #eee; display: flex; gap: 10px; }
+  #saveBar input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; }
+
+  /* ---- 拡大表示 ---- */
+  #viewerOverlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    align-items: center; justify-content: center; z-index: 50; flex-direction: column;
+  }
+  #viewerOverlay.active { display: flex; }
+  #viewerOverlay img { max-width: 92%; max-height: 80%; border-radius: 8px; }
+  #viewerOverlay .memo { color: #fff; margin-top: 12px; font-size: 14px; }
+  #viewerClose {
+    position: absolute; top: 20px; right: 24px; color: #fff; font-size: 28px;
+    background: none; border: none; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+  <!-- 検索・履歴画面 -->
+  <div id="searchScreen" class="screen active">
+    <div class="logo">🌿 Re:af カルテ</div>
+
+    <div class="field">
+      <label>お名前</label>
+      <input type="text" id="nameInput" placeholder="山田 花子">
+    </div>
+    <div class="field">
+      <label>生年月日</label>
+      <input type="date" id="birthdayInput">
+    </div>
+
+    <div style="font-size:13px; color:#888; margin:14px 0 4px;">WebApp URL(初回のみ設定)</div>
+    <input type="text" id="webAppUrl" placeholder="https://script.google.com/macros/s/.../exec"
+      style="width:100%; padding:10px; border:1px solid #ccc; border-radius:8px; font-size:13px;">
+
+    <button class="primaryBtn" onclick="searchHistory()">履歴を確認する</button>
+    <button class="secondaryBtn" onclick="startNewKarte()">新しいカルテを描く</button>
+    <div id="searchError"></div>
+
+    <div class="historyList" id="historyList"></div>
+  </div>
+
+  <!-- 描画画面 -->
+  <div id="drawScreen" class="screen">
+    <div id="toolbar">
+      <div class="colorBtn selected" style="background:#e74c3c" data-color="#e74c3c" onclick="selectColor(this)"></div>
+      <div class="colorBtn" style="background:#3498db" data-color="#3498db" onclick="selectColor(this)"></div>
+      <div class="colorBtn" style="background:#2ecc71" data-color="#2ecc71" onclick="selectColor(this)"></div>
+      <div class="colorBtn" style="background:#222" data-color="#222" onclick="selectColor(this)"></div>
+      <button class="toolBtn selected" id="penToolBtn" onclick="setTool('pen')">ペン</button>
+      <button class="toolBtn" id="eraserToolBtn" onclick="setTool('eraser')">消しゴム</button>
+      <button class="toolBtn" onclick="undoStroke()">戻す</button>
+      <button class="toolBtn" onclick="clearCanvas()">全消去</button>
+      <div class="spacer"></div>
+      <button class="toolBtn" onclick="backToSearch()">✕ 閉じる</button>
+    </div>
+    <div id="canvasWrap">
+      <canvas id="drawCanvas"></canvas>
+    </div>
+    <div id="saveBar">
+      <input type="text" id="memoInput" placeholder="メモ(任意)">
+      <button class="primaryBtn" style="width:auto; margin:0;" onclick="saveKarte()">保存</button>
+    </div>
+  </div>
+
+  <!-- 拡大表示 -->
+  <div id="viewerOverlay">
+    <button id="viewerClose" onclick="closeViewer()">✕</button>
+    <img id="viewerImg" src="">
+    <div class="memo" id="viewerMemo"></div>
+  </div>
+
+<script>
+// イラスト画像はGitHub等にアップロードして、このURLを設定してください
+const ILLUST_URL = './body-illust.png';
+
+let currentColor = '#e74c3c';
+let currentTool = 'pen';
+let strokes = []; // {color, width, points:[{x,y}]}
+let currentStroke = null;
+let illustImage = new Image();
+let illustLoaded = false;
+
+const canvas = document.getElementById('drawCanvas');
+const ctx = canvas.getContext('2d');
+
+illustImage.crossOrigin = 'anonymous';
+illustImage.onload = () => {
+  illustLoaded = true;
+  const wrap = document.getElementById('canvasWrap');
+  const maxW = wrap.clientWidth - 20;
+  const maxH = wrap.clientHeight - 20;
+  const ratio = Math.min(maxW / illustImage.width, maxH / illustImage.height, 1);
+  canvas.width = illustImage.width * ratio;
+  canvas.height = illustImage.height * ratio;
+  redrawAll();
+};
+illustImage.onerror = () => {
+  illustLoaded = false;
+  canvas.width = 600;
+  canvas.height = 800;
+  redrawAll();
+};
+illustImage.src = ILLUST_URL;
+
+function redrawAll() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (illustLoaded) {
+    ctx.drawImage(illustImage, 0, 0, canvas.width, canvas.height);
+  } else {
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#bbb';
+    ctx.font = '16px sans-serif';
+    ctx.fillText('イラスト画像が見つかりません(ILLUST_URLを確認)', 20, 40);
+  }
+  strokes.forEach(s => drawStroke(s));
+}
+
+function drawStroke(stroke) {
+  if (stroke.points.length < 2) return;
+  ctx.strokeStyle = stroke.color;
+  ctx.lineWidth = stroke.width;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.globalCompositeOperation = stroke.erase ? 'destination-out' : 'source-over';
+  ctx.beginPath();
+  ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+  for (let i = 1; i < stroke.points.length; i++) {
+    ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+  }
+  ctx.stroke();
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+function getPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
+
+canvas.addEventListener('pointerdown', (e) => {
+  canvas.setPointerCapture(e.pointerId);
+  const pos = getPos(e);
+  currentStroke = {
+    color: currentColor,
+    width: currentTool === 'eraser' ? 26 : 4,
+    erase: currentTool === 'eraser',
+    points: [pos],
+  };
+});
+canvas.addEventListener('pointermove', (e) => {
+  if (!currentStroke) return;
+  const pos = getPos(e);
+  currentStroke.points.push(pos);
+  drawStroke(currentStroke);
+});
+canvas.addEventListener('pointerup', () => {
+  if (currentStroke) {
+    strokes.push(currentStroke);
+    currentStroke = null;
+  }
+});
+canvas.addEventListener('pointercancel', () => { currentStroke = null; });
+
+function selectColor(el) {
+  currentColor = el.dataset.color;
+  document.querySelectorAll('.colorBtn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  setTool('pen');
+}
+
+function setTool(tool) {
+  currentTool = tool;
+  document.getElementById('penToolBtn').classList.toggle('selected', tool === 'pen');
+  document.getElementById('eraserToolBtn').classList.toggle('selected', tool === 'eraser');
+}
+
+function undoStroke() {
+  strokes.pop();
+  redrawAll();
+}
+
+function clearCanvas() {
+  if (confirm('書き込みを全部消しますか？')) {
+    strokes = [];
+    redrawAll();
+  }
+}
+
+function startNewKarte() {
+  const name = document.getElementById('nameInput').value.trim();
+  const birthday = document.getElementById('birthdayInput').value;
+  if (!name || !birthday) {
+    document.getElementById('searchError').textContent = 'お名前と生年月日を入力してください';
+    return;
+  }
+  strokes = [];
+  document.getElementById('searchScreen').classList.remove('active');
+  document.getElementById('drawScreen').classList.add('active');
+  setTimeout(() => redrawAll(), 50); // 画面切り替え後にサイズ再計算
+}
+
+function backToSearch() {
+  document.getElementById('drawScreen').classList.remove('active');
+  document.getElementById('searchScreen').classList.add('active');
+}
+
+async function searchHistory() {
+  const name = document.getElementById('nameInput').value.trim();
+  const birthday = document.getElementById('birthdayInput').value;
+  const url = document.getElementById('webAppUrl').value.trim();
+  const errorEl = document.getElementById('searchError');
+  const listEl = document.getElementById('historyList');
+  errorEl.textContent = '';
+  listEl.innerHTML = '';
+
+  if (!name || !birthday) {
+    errorEl.textContent = 'お名前と生年月日を入力してください';
+    return;
+  }
+  if (!url) {
+    errorEl.textContent = 'WebApp URLを設定してください';
+    return;
+  }
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'getKarteHistory', name, birthday }),
+    });
+    const data = await res.json();
+    if (!data.success) {
+      errorEl.textContent = data.error || '取得できませんでした';
+      return;
+    }
+    if (data.records.length === 0) {
+      listEl.innerHTML = '<div style="color:#999; font-size:14px; text-align:center; margin-top:16px;">まだ記録がありません</div>';
+      return;
+    }
+    data.records.forEach(r => {
+      const item = document.createElement('div');
+      item.className = 'historyItem';
+      item.innerHTML = `
+        <img src="${r.url}">
+        <div class="meta">
+          <div class="date">${r.date}</div>
+          ${r.memo ? `<div class="memo">${r.memo}</div>` : ''}
+        </div>
+      `;
+      item.onclick = () => openViewer(r.url, r.memo);
+      listEl.appendChild(item);
+    });
+  } catch (e) {
+    errorEl.textContent = '通信エラーが発生しました';
+  }
+}
+
+function openViewer(url, memo) {
+  document.getElementById('viewerImg').src = url;
+  document.getElementById('viewerMemo').textContent = memo || '';
+  document.getElementById('viewerOverlay').classList.add('active');
+}
+function closeViewer() {
+  document.getElementById('viewerOverlay').classList.remove('active');
+}
+
+async function saveKarte() {
+  const name = document.getElementById('nameInput').value.trim();
+  const birthday = document.getElementById('birthdayInput').value;
+  const memo = document.getElementById('memoInput').value.trim();
+  const url = document.getElementById('webAppUrl').value.trim();
+
+  if (!url) {
+    alert('WebApp URLを設定してください');
+    return;
+  }
+
+  const imageBase64 = canvas.toDataURL('image/png');
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'saveKarte', name, birthday, memo, imageBase64 }),
+    });
+    const data = await res.json();
+    if (!data.success) {
+      alert('保存に失敗しました: ' + data.error);
+      return;
+    }
+    alert('保存しました');
+    backToSearch();
+  } catch (e) {
+    alert('通信エラーが発生しました');
+  }
+}
+</script>
+</body>
+</html>
