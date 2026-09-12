@@ -205,21 +205,26 @@ const ctx = canvas.getContext('2d');
 illustImage.crossOrigin = 'anonymous';
 illustImage.onload = () => {
   illustLoaded = true;
-  const wrap = document.getElementById('canvasWrap');
-  const maxW = wrap.clientWidth - 20;
-  const maxH = wrap.clientHeight - 20;
-  const ratio = Math.min(maxW / illustImage.width, maxH / illustImage.height, 1);
-  canvas.width = illustImage.width * ratio;
-  canvas.height = illustImage.height * ratio;
-  redrawAll();
 };
 illustImage.onerror = () => {
   illustLoaded = false;
-  canvas.width = 600;
-  canvas.height = 800;
-  redrawAll();
 };
 illustImage.src = ILLUST_URL;
+
+function sizeCanvasToWrap() {
+  const wrap = document.getElementById('canvasWrap');
+  const maxW = Math.max(wrap.clientWidth - 20, 50);
+  const maxH = Math.max(wrap.clientHeight - 20, 50);
+
+  if (illustLoaded) {
+    const ratio = Math.min(maxW / illustImage.width, maxH / illustImage.height);
+    canvas.width = illustImage.width * ratio;
+    canvas.height = illustImage.height * ratio;
+  } else {
+    canvas.width = maxW;
+    canvas.height = maxH;
+  }
+}
 
 function redrawAll() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -315,13 +320,23 @@ function startNewKarte() {
   strokes = [];
   document.getElementById('searchScreen').classList.remove('active');
   document.getElementById('drawScreen').classList.add('active');
-  setTimeout(() => redrawAll(), 50); // 画面切り替え後にサイズ再計算
+  setTimeout(() => {
+    sizeCanvasToWrap();
+    redrawAll();
+  }, 50); // 画面切り替え後にサイズ再計算
 }
 
 function backToSearch() {
   document.getElementById('drawScreen').classList.remove('active');
   document.getElementById('searchScreen').classList.add('active');
 }
+
+window.addEventListener('resize', () => {
+  if (document.getElementById('drawScreen').classList.contains('active')) {
+    sizeCanvasToWrap();
+    redrawAll();
+  }
+});
 
 async function searchHistory() {
   const name = document.getElementById('nameInput').value.trim();
